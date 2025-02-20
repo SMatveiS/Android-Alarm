@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/alarmsFragment">
+
+    <fragment android:id="@+id/alarmsFragment"
+        android:name="com.example.alarm.AlarmsFragment"
+        tools:layout="@layout/alarms_fragment">
+        <action android:id="@+id/actionAlarmsToBuild"
+            app:destination="@id/fragmentBuildAlarm" />
+    </fragment>
+
+    <fragment android:id="@+id/fragmentBuildAlarm"
+        android:name="com.example.alarm.BuildAlarmsFragment"
+        tools:layout="@layout/build_alarm_fragment" >
+        <action android:id="@+id/actionBuildToAlarm"
+            app:destination="@id/alarmsFragment" />
+        <argument android:name="alarm_id"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+
+</navigation>

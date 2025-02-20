@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">Alarm</string>
+    <string name="more_action">Другие параметры</string>
+    <string name="add_alarm">Добавить будильник</string>
+    <string name="join">:</string>
+    <string name="cancel">Отмена</string>
+    <string name="save">Сохранить</string>
+    <string name="alarms_title">Все будильники\n отключены</string>
+    <string name="monday">П</string>
+    <string name="tuesday">В</string>
+    <string name="wednesday">С</string>
+    <string name="thursday">Ч</string>
+    <string name="friday">П</string>
+    <string name="saturday">С</string>
+    <string name="sunday">В</string>
+    <string name="hint_alarm_name">Название будильника</string>
+    <string name="alarm_sound">Звук будильника</string>
+    <string name="vibration">Вибрация</string>
+    <string name="delAfterUse">Удалить при выключении</string>
+    <string name="mon">"Пн, "</string>
+    <string name="tue">"Вт, "</string>
+    <string name="wed">"Ср, "</string>
+    <string name="thu">"Чт, "</string>
+    <string name="fri">"Пт, "</string>
+    <string name="sat">"Сб, "</string>
+    <string name="sun">"Вс, "</string>
+    <string name="every">"Кажд. "</string>
+    <string name="everyday">Ежедневно</string>
+    <string name="today">Сегодня-</string>
+    <string name="yesterday">Завтра-</string>
+    <string name="january">янв.</string>
+    <string name="february">февр.</string>
+    <string name="march">марта</string>
+    <string name="april">апр.</string>
+    <string name="may">мая</string>
+    <string name="june">июня</string>
+    <string name="july">июля</string>
+    <string name="august">авг.</string>
+    <string name="september">сент.</string>
+    <string name="october">окт.</string>
+    <string name="november">нояб.</string>
+    <string name="december">дек.</string>
+    <string name="state_on">Включено</string>
+    <string name="state_off">Выключено</string>
+    <string name="dismiss">Выключить</string>
+
+</resources>
