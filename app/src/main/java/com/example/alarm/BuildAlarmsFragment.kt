@@ -21,6 +21,8 @@ import androidx.navigation.fragment.navArgs
 import com.example.alarm.databinding.BuildAlarmFragmentBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -35,11 +37,6 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     private val args: BuildAlarmsFragmentArgs by navArgs()
 
 
-    private fun getAlarmInfoPendingIntent(): PendingIntent {
-        val alarmInfoIntent = Intent(requireContext(), MainActivity::class.java)
-        alarmInfoIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-        return PendingIntent.getActivity(requireContext(), 0, alarmInfoIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-    }
 
     private fun changeAlarmDayText(alarm: Alarm) {
         var newText: String
@@ -149,7 +146,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
 
         binding = BuildAlarmFragmentBinding.inflate(inflater, container, false)
         val alarmViewModel = AlarmViewModel(requireActivity().application)
-        if (args.alarmId != -1) {
+        if (args.alarmId != (-1).toLong()) {
             CoroutineScope(Dispatchers.IO).launch {
                 val alarm = alarmViewModel.getAlarm(args.alarmId)
 
@@ -304,31 +301,27 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
             newAlarm.name = binding!!.alarmName.text.toString().trim()
             Utils.weekSetToString(newAlarm)
 
-            if (args.alarmId == -1)
-                alarmViewModel.insert(newAlarm)
+            // Если есть будильник с тем же временем, то удаляем его AlarmReceiver
+            CoroutineScope(Dispatchers.IO).launch {
+                val idOfSimilarAlarm = alarmViewModel.getSimilarAlarm(args.alarmId, newAlarm.time, newAlarm.weekDaysEnabled)
+                idOfSimilarAlarm?.let {  Utils.delAlarmReceiver(requireContext(), idOfSimilarAlarm) }
+            }
+            // И удаляем его из бд (Нельзя сделать оба действия сразу,
+            // так как будильник не успеет удалиться из бд, до того как его извлекут в AlarmsFragment)
+            alarmViewModel.delSimilarAlarm(args.alarmId, newAlarm.time, newAlarm.weekDaysEnabled)
+
+            // Добавляем либо обновляем будильник в бд
+            if (args.alarmId == (-1).toLong()) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val alarmId = alarmViewModel.insert(newAlarm)
+                    Utils.createAlarmReceiver(requireContext(), alarmId, newAlarm)
+                }
+            }
             else {
                 newAlarm.id = args.alarmId
                 alarmViewModel.updateAlarm(newAlarm)
+                Utils.createAlarmReceiver(requireContext(), newAlarm.id, newAlarm)
             }
-
-            val alarmManager: AlarmManager = requireActivity().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-            val intent = Intent(requireContext(), AlarmReceiver::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                putExtra("ALARM_NAME", newAlarm.name)
-                setAction("START_ALARM")
-            }
-            val pendingIntent = PendingIntent.getBroadcast(
-                requireContext(),
-                3,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-
-            val alarmTime = Utils.getAlarmDate(newAlarm).atTime(LocalTime.parse(newAlarm.time, DateTimeFormatter.ofPattern("HH:mm")))
-            val instant = alarmTime.atZone(ZoneId.systemDefault()).toInstant()
-            val alarmClockInfo = AlarmManager.AlarmClockInfo(instant.toEpochMilli(), getAlarmInfoPendingIntent())
-            alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
 
             findNavController().navigate(BuildAlarmsFragmentDirections.actionBuildToAlarm())
         }

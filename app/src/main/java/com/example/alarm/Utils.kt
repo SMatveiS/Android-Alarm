@@ -1,15 +1,23 @@
 package com.example.alarm
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.util.Log
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import java.sql.Time
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Month
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 object Utils {
+
     fun weekSetToString(alarm: Alarm) {
         alarm.weekDaysEnabledSet.forEach { el ->
             alarm.weekDaysEnabled += el.value.toString()
@@ -79,5 +87,55 @@ object Utils {
         }
 
         return dayText
+    }
+
+    private fun getAlarmInfoPendingIntent(context: Context): PendingIntent {
+        val alarmInfoIntent = Intent(context, MainActivity::class.java)
+        alarmInfoIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        return PendingIntent.getActivity(context, 0, alarmInfoIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    }
+
+    fun createAlarmReceiver(context: Context, id: Long, alarm: Alarm) {
+        val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("ALARM_NAME", alarm.name)
+            setAction("START_ALARM")
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            id.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Удаляем AlarmReceiver, если он существует (иначе ничего не произойдёт)
+        pendingIntent.cancel()
+        alarmManager.cancel(pendingIntent)
+
+        val alarmDate = getAlarmDate(alarm).atTime(LocalTime.parse(alarm.time, DateTimeFormatter.ofPattern("HH:mm")))
+        val instant = alarmDate.atZone(ZoneId.systemDefault()).toInstant()
+        val alarmClockInfo = AlarmManager.AlarmClockInfo(instant.toEpochMilli(), getAlarmInfoPendingIntent(context))
+        alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
+    }
+
+
+    fun delAlarmReceiver(context: Context, alarmId: Long) {
+        val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            setAction("START_ALARM")
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            alarmId.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        pendingIntent.cancel()
+        alarmManager.cancel(pendingIntent)
     }
 }

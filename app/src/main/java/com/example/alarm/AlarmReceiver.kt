@@ -71,7 +71,5 @@ class AlarmReceiver: BroadcastReceiver() {
             AlarmMusic.stop()
             NotificationManagerCompat.from(context).cancel(2)
         }
-
-
     }
 }

@@ -18,8 +18,8 @@
         <action android:id="@+id/actionBuildToAlarm"
             app:destination="@id/alarmsFragment" />
         <argument android:name="alarm_id"
-            app:argType="integer"
-            android:defaultValue="-1" />
+            android:defaultValue="-1L"
+            app:argType="long" />
     </fragment>
 
 </navigation>

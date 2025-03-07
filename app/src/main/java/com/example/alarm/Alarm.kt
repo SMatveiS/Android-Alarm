@@ -7,7 +7,7 @@ import java.time.DayOfWeek
 
 @Entity
 data class Alarm(
-    @PrimaryKey (autoGenerate = true) var id: Int = 0,
+    @PrimaryKey(autoGenerate = true) var id: Long = 0,
     var alarmIsEnabled: Boolean = true,
     var name: String = "",
     var time: String = "06:00",

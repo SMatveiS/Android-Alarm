@@ -8,19 +8,13 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
-import androidx.collection.mutableIntListOf
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.switchmaterial.SwitchMaterial
 import java.time.DayOfWeek
 import java.time.Duration
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -36,13 +30,12 @@ class ShowAlarmsAdapter(private val context: Context, private val alarms: List<A
 
     interface OnAlarmClickListener{
         fun changeNextAlarmText(text1: String, text2: String)
-        fun changeAlarm(alarmId: Int)
+        fun changeAlarm(alarmId: Long)
     }
 
     private fun getTimeBeforeAlarm(alarm: Alarm): Duration {
         val alarmDate = Utils.getAlarmDate(alarm)
         val alarmDateTime = alarmDate.atTime(LocalTime.parse(alarm.time, DateTimeFormatter.ofPattern("HH:mm")))
-        //alarm.date = alarmDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
         return Duration.between(LocalDateTime.now(), alarmDateTime)
     }
@@ -163,6 +156,7 @@ class ShowAlarmsAdapter(private val context: Context, private val alarms: List<A
         }
         else
             holder.alarmName.text = alarm.name
+
         holder.alarmDate.text = getDateText(alarm)
         holder.alarmTime.text = alarm.time
         changeAlarmUI(holder, alarm.alarmIsEnabled)
@@ -176,10 +170,13 @@ class ShowAlarmsAdapter(private val context: Context, private val alarms: List<A
             alarm.alarmIsEnabled = isChecked
             changeAlarmUI(holder, isChecked)
 
-            if (isChecked)
+            if (isChecked) {
                 enabledAlarms.add(alarm)
+                Utils.createAlarmReceiver(context, alarm.id, alarm)
+            }
             else {
                 enabledAlarms.remove(enabledAlarms.find { it.id == alarm.id })
+                Utils.delAlarmReceiver(context, alarm.id)
             }
 
             createAndChangeNextAlarmText(enabledAlarms)

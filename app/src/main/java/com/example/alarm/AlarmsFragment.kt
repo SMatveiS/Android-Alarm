@@ -22,7 +22,7 @@ class AlarmsFragment: Fragment(R.layout.alarms_fragment), ShowAlarmsAdapter.OnAl
 
     private var binding: AlarmsFragmentBinding? = null
 
-    override fun changeAlarm(alarmId: Int) {
+    override fun changeAlarm(alarmId: Long) {
         findNavController().navigate(AlarmsFragmentDirections.actionAlarmsToBuild(alarmId))
     }
 
