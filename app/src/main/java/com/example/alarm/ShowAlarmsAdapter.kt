@@ -19,18 +19,22 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-class ShowAlarmsAdapter(private val context: Context, private val alarms: List<Alarm>, private val listener: OnAlarmClickListener): RecyclerView.Adapter<ShowAlarmsAdapter.ViewHolder>() {
+class ShowAlarmsAdapter(
+    private val context: Context,
+    private val alarms: List<Alarm>,
+    private val listener: OnAlarmClickListener
+): RecyclerView.Adapter<ShowAlarmsAdapter.ViewHolder>() {
 
     private val purple = ContextCompat.getColor(context, R.color.purple_500)
     private val lightGrey = ContextCompat.getColor(context, R.color.light_grey)
 
-    private var enabledAlarms: MutableList<Alarm> = mutableListOf()
+    private var enabledAlarms: MutableSet<Alarm> = mutableSetOf()
     private val alarmViewModel = AlarmViewModel(context.applicationContext as Application)
-    private var nearestAlarm: Alarm? = null
 
-    interface OnAlarmClickListener{
+    interface OnAlarmClickListener {
         fun changeNextAlarmText(text1: String, text2: String)
         fun changeAlarm(alarmId: Long)
+        fun changeUiToChooseAlarms(alarmId: Long)
     }
 
     private fun getTimeBeforeAlarm(alarm: Alarm): Duration {
@@ -40,22 +44,25 @@ class ShowAlarmsAdapter(private val context: Context, private val alarms: List<A
         return Duration.between(LocalDateTime.now(), alarmDateTime)
     }
 
-    private fun getTimeBeforeNearestAlarm(alarms: List<Alarm>): Duration {
-        nearestAlarm = alarms[0]
-        var timeBeforeNearestAlarm: Duration = getTimeBeforeAlarm(alarms[0])
-        for (i in 1..< alarms.size) {
-            val timeBeforeAlarm = getTimeBeforeAlarm(alarms[i])
-
-            if (timeBeforeNearestAlarm > timeBeforeAlarm) {
+    private fun getNearestAlarm(alarms: Set<Alarm>): Alarm {
+        var nearestAlarm: Alarm? = null
+        var timeBeforeNearestAlarm: Duration? = null
+        for (alarm in alarms) {
+            val timeBeforeAlarm = getTimeBeforeAlarm(alarm)
+            if (nearestAlarm == null) {
+                nearestAlarm = alarm
                 timeBeforeNearestAlarm = timeBeforeAlarm
-                nearestAlarm = alarms[i]
+            }
+            else if (timeBeforeNearestAlarm!! > timeBeforeAlarm) {
+                timeBeforeNearestAlarm = timeBeforeAlarm
+                nearestAlarm = alarm
             }
         }
 
-        return timeBeforeNearestAlarm
+        return nearestAlarm!!
     }
 
-    private fun createAndChangeNextAlarmText(alarms: List<Alarm>) {
+    private fun createAndChangeNextAlarmText(alarms: Set<Alarm>) {
         var nextAlarmText: String
         if (alarms.isEmpty()) {
             nextAlarmText = "Все будильники отключены"
@@ -63,7 +70,8 @@ class ShowAlarmsAdapter(private val context: Context, private val alarms: List<A
         }
 
         else {
-            val timeBeforeNearestAlarm = getTimeBeforeNearestAlarm(alarms)
+            val nearestAlarm = getNearestAlarm(alarms)
+            val timeBeforeNearestAlarm = getTimeBeforeAlarm(nearestAlarm)
             nextAlarmText = "Будильник"
             val days = timeBeforeNearestAlarm.toDays().toInt()
             nextAlarmText += if (days >= 5)
@@ -76,7 +84,7 @@ class ShowAlarmsAdapter(private val context: Context, private val alarms: List<A
                 " через\n${timeBeforeNearestAlarm.toHours() % 24} ч. ${timeBeforeNearestAlarm.toMinutes() % 60} мин."
 
             listener.changeNextAlarmText(nextAlarmText,
-                "${Utils.getDayText(context, Utils.getAlarmDate(nearestAlarm!!))}, ${nearestAlarm!!.time}")
+                "${Utils.getDayText(context, Utils.getAlarmDate(nearestAlarm))}, ${nearestAlarm.time}")
         }
     }
 
@@ -127,7 +135,7 @@ class ShowAlarmsAdapter(private val context: Context, private val alarms: List<A
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.saved_alarms, parent, false)
+            .inflate(R.layout.saved_alarm, parent, false)
         return ViewHolder(view)
     }
 
@@ -146,7 +154,7 @@ class ShowAlarmsAdapter(private val context: Context, private val alarms: List<A
         }
 
         val alarm = alarms[position]
-        Utils.weekStringToSet(alarm)
+        Utils.parseWeekStringToSet(alarm)
 
         if (alarm.name == "") {
             val layoutParams = holder.alarmTime.layoutParams as ConstraintLayout.LayoutParams
@@ -184,6 +192,11 @@ class ShowAlarmsAdapter(private val context: Context, private val alarms: List<A
 
         holder.alarm.setOnClickListener {
             listener.changeAlarm(alarm.id)
+        }
+
+        holder.alarm.setOnLongClickListener {
+            listener.changeUiToChooseAlarms(alarm.id)
+            true
         }
     }
 }

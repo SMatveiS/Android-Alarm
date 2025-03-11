@@ -37,4 +37,8 @@
         <item name="trackTint">@color/purple_500</item>
         <item name="thumbTint">@color/white</item>
     </style>
+
+    <style name="MyCheckBox" parent="ThemeOverlay.AppCompat.Dark">
+        <item name="colorControlActivated">@color/purple_500</item>
+    </style>
 </resources>

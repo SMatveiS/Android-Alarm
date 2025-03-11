@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.launch
 
 class AlarmViewModel(application: Application) : AndroidViewModel(application) {
@@ -23,6 +24,10 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
 
     suspend fun getSimilarAlarm(alarmId: Long, alarmTime: String, alarmWeekDaysEnabled: String): Long? {
         return alarmDao.getSimilarAlarm(alarmId, alarmTime, alarmWeekDaysEnabled)
+    }
+
+    fun delById(alarmsId: Set<Long>) = viewModelScope.launch {
+        alarmDao.deleteById(alarmsId)
     }
 
     fun delSimilarAlarm(alarmId: Long, alarmTime: String, alarmWeekDaysEnabled: String) = viewModelScope.launch {

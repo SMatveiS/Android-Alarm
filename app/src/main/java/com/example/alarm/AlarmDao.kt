@@ -16,6 +16,9 @@ interface AlarmDao {
     @Update
     suspend fun updateAlarm(alarm: Alarm)
 
+    @Query("DELETE FROM alarm WHERE id IN (:alarmsId)")
+    suspend fun deleteById(alarmsId: Set<Long>)
+
     @Query("DELETE FROM alarm WHERE id != :alarmId AND time = :alarmTime AND weekDaysEnabled = :alarmWeekDaysEnabled")
     suspend fun deleteSimilarAlarm(alarmId: Long, alarmTime: String, alarmWeekDaysEnabled: String)
 

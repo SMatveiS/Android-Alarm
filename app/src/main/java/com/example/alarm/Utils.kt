@@ -18,13 +18,13 @@ import java.time.format.DateTimeFormatter
 
 object Utils {
 
-    fun weekSetToString(alarm: Alarm) {
+    fun parseWeekSetToString(alarm: Alarm) {
         alarm.weekDaysEnabledSet.forEach { el ->
             alarm.weekDaysEnabled += el.value.toString()
         }
     }
 
-    fun weekStringToSet(alarm: Alarm) {
+    fun parseWeekStringToSet(alarm: Alarm) {
         for (i in 0..<alarm.weekDaysEnabled.length) {
             alarm.weekDaysEnabledSet.add(DayOfWeek.of(alarm.weekDaysEnabled[i].digitToInt()))
         }

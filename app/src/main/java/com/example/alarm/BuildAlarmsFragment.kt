@@ -294,12 +294,12 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
 
 
         binding!!.cancelButton.setOnClickListener {
-            findNavController().navigate(BuildAlarmsFragmentDirections.actionBuildToAlarm())
+            findNavController().navigate(BuildAlarmsFragmentDirections.actionBuildToAlarms())
         }
 
         binding!!.saveButton.setOnClickListener {
             newAlarm.name = binding!!.alarmName.text.toString().trim()
-            Utils.weekSetToString(newAlarm)
+            Utils.parseWeekSetToString(newAlarm)
 
             // Если есть будильник с тем же временем, то удаляем его AlarmReceiver
             CoroutineScope(Dispatchers.IO).launch {
@@ -323,7 +323,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
                 Utils.createAlarmReceiver(requireContext(), newAlarm.id, newAlarm)
             }
 
-            findNavController().navigate(BuildAlarmsFragmentDirections.actionBuildToAlarm())
+            findNavController().navigate(BuildAlarmsFragmentDirections.actionBuildToAlarms())
         }
     }
 
