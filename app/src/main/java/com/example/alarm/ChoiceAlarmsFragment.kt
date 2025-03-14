@@ -19,17 +19,23 @@ class ChoiceAlarmsFragment: Fragment(R.layout.choice_alarms_fragment), ShowChoic
 
     private var binding: ChoiceAlarmsFragmentBinding? = null
     private val args: ChoiceAlarmsFragmentArgs by navArgs()
-    // Множество выбранных будильников
+    // Множество из выбранных будильников
     private val selectedAlarms: MutableSet<Long> = mutableSetOf()
 
-    override fun changeCountSelectedAlarmText(alarmId: Long, option: Boolean) {
-        if (option)
+    override fun changeCountSelectedAlarmText(alarmId: Long, option: Boolean, countAlarms: Int) {
+        if (option) {
             selectedAlarms.add(alarmId)
+
+            if (selectedAlarms.size == countAlarms)
+                binding!!.selectAllAlarms.isChecked = true
+        }
         else {
             selectedAlarms.remove(alarmId)
 
             if (selectedAlarms.isEmpty())
                 findNavController().navigate(ChoiceAlarmsFragmentDirections.actionChoiceToAlarms())
+            else if (binding!!.selectAllAlarms.isChecked)
+                binding!!.selectAllAlarms.isChecked = false
         }
 
         binding?.countSelectedAlarmText?.text = "Выбрано: " + selectedAlarms.size.toString()
@@ -61,8 +67,20 @@ class ChoiceAlarmsFragment: Fragment(R.layout.choice_alarms_fragment), ShowChoic
 
         val alarmViewModel = AlarmViewModel(requireActivity().application)
 
-        binding?.selectAllAlarms?.setOnCheckedChangeListener { _, isChecked ->
+        val recyclerView: RecyclerView = binding!!.alarms
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        binding?.selectAllAlarms?.setOnClickListener {
+            if (binding!!.selectAllAlarms.isChecked) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val alarms = alarmViewModel.allAlarms()
+                    withContext(Dispatchers.Main) {
+                        recyclerView.adapter = ShowChoiceAlarmsAdapter(requireContext(), -1, alarms, this@ChoiceAlarmsFragment)
+                    }
+                }
+            }
+            else
+                findNavController().navigate(ChoiceAlarmsFragmentDirections.actionChoiceToAlarms())
         }
 
         binding?.deleteButton?.setOnClickListener {

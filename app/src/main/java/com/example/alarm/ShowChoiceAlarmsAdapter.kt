@@ -21,17 +21,15 @@ class ShowChoiceAlarmsAdapter(
     private val listener: OnAlarmClickListener
 ): RecyclerView.Adapter<ShowChoiceAlarmsAdapter.ViewHolder>() {
 
-    private val alarmViewModel = AlarmViewModel(context.applicationContext as Application)
-
     interface OnAlarmClickListener {
-        fun changeCountSelectedAlarmText(alarmId: Long, option: Boolean)
+        fun changeCountSelectedAlarmText(alarmId: Long, option: Boolean, countAlarms: Int)
     }
 
     private fun changeSelectionState(holder: ViewHolder, alarmId: Long) {
         val newState = !holder.alarmIsSelected.isChecked
         holder.alarmIsSelected.isChecked = newState
 
-        listener.changeCountSelectedAlarmText(alarmId, newState)
+        listener.changeCountSelectedAlarmText(alarmId, newState, itemCount)
     }
 
     private fun getDateText(alarm: Alarm): SpannableString {
@@ -94,7 +92,7 @@ class ShowChoiceAlarmsAdapter(
         val alarm = alarms[position]
         Utils.parseWeekStringToSet(alarm)
 
-        if (alarm.id == firstSelectedAlarmId)
+        if (alarm.id == firstSelectedAlarmId || firstSelectedAlarmId.toInt() == -1)
             changeSelectionState(holder, alarm.id)
 
         if (alarm.name == "") {

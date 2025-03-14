@@ -28,7 +28,7 @@ class ShowAlarmsAdapter(
     private val purple = ContextCompat.getColor(context, R.color.purple_500)
     private val lightGrey = ContextCompat.getColor(context, R.color.light_grey)
 
-    private var enabledAlarms: MutableSet<Alarm> = mutableSetOf()
+    private val enabledAlarms: MutableList<Alarm> = mutableListOf()
     private val alarmViewModel = AlarmViewModel(context.applicationContext as Application)
 
     interface OnAlarmClickListener {
@@ -44,10 +44,10 @@ class ShowAlarmsAdapter(
         return Duration.between(LocalDateTime.now(), alarmDateTime)
     }
 
-    private fun getNearestAlarm(alarms: Set<Alarm>): Alarm {
+    private fun getNearestAlarm(): Alarm {
         var nearestAlarm: Alarm? = null
         var timeBeforeNearestAlarm: Duration? = null
-        for (alarm in alarms) {
+        for (alarm in enabledAlarms) {
             val timeBeforeAlarm = getTimeBeforeAlarm(alarm)
             if (nearestAlarm == null) {
                 nearestAlarm = alarm
@@ -62,15 +62,11 @@ class ShowAlarmsAdapter(
         return nearestAlarm!!
     }
 
-    private fun createAndChangeNextAlarmText(alarms: Set<Alarm>) {
-        var nextAlarmText: String
-        if (alarms.isEmpty()) {
-            nextAlarmText = "Все будильники отключены"
-            listener.changeNextAlarmText(nextAlarmText, "")
-        }
-
-        else {
-            val nearestAlarm = getNearestAlarm(alarms)
+    private fun createAndChangeNextAlarmText() {
+        var nextAlarmText = "Все будильники отключены"
+        var text2 = ""
+        if (enabledAlarms.isNotEmpty()) {
+            val nearestAlarm = getNearestAlarm()
             val timeBeforeNearestAlarm = getTimeBeforeAlarm(nearestAlarm)
             nextAlarmText = "Будильник"
             val days = timeBeforeNearestAlarm.toDays().toInt()
@@ -83,9 +79,10 @@ class ShowAlarmsAdapter(
             else
                 " через\n${timeBeforeNearestAlarm.toHours() % 24} ч. ${timeBeforeNearestAlarm.toMinutes() % 60} мин."
 
-            listener.changeNextAlarmText(nextAlarmText,
-                "${Utils.getDayText(context, Utils.getAlarmDate(nearestAlarm))}, ${nearestAlarm.time}")
+            text2 = "${Utils.getDayText(context, Utils.getAlarmDate(nearestAlarm))}, ${nearestAlarm.time}"
         }
+
+        listener.changeNextAlarmText(nextAlarmText, text2)
     }
 
     private fun getDateText(alarm: Alarm): SpannableString {
@@ -150,7 +147,7 @@ class ShowAlarmsAdapter(
                 if (alarm.alarmIsEnabled)
                     enabledAlarms.add(alarm)
             }
-            createAndChangeNextAlarmText(enabledAlarms)
+            createAndChangeNextAlarmText()
         }
 
         val alarm = alarms[position]
@@ -187,7 +184,7 @@ class ShowAlarmsAdapter(
                 Utils.delAlarmReceiver(context, alarm.id)
             }
 
-            createAndChangeNextAlarmText(enabledAlarms)
+            createAndChangeNextAlarmText()
         }
 
         holder.alarm.setOnClickListener {
