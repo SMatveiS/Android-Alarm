@@ -84,16 +84,16 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     private fun changeSoundSwitch(isChecked: Boolean, alarm: Alarm) {
         if (isChecked) {
             alarm.soundIsEnabled = true
-            binding!!.soundSwitch.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple_500))
-            binding!!.soundName.text = "default"
+            binding?.soundSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple_500))
+            binding?.soundName?.text = "default"
 
 
         }
 
         else {
             alarm.soundIsEnabled = false
-            binding!!.soundSwitch.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
-            binding!!.soundName.text = ContextCompat.getString(requireContext(), R.string.state_off)
+            binding?.soundSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
+            binding?.soundName?.text = ContextCompat.getString(requireContext(), R.string.state_off)
 
 
         }
@@ -102,16 +102,16 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     private fun changeVibrationSwitch(isChecked: Boolean, alarm: Alarm) {
         if (isChecked) {
             alarm.vibrationIsEnabled = true
-            binding!!.vibrationSwitch.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple_500))
-            binding!!.vibrationName.text = "default"
+            binding?.vibrationSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple_500))
+            binding?.vibrationName?.text = "default"
 
 
         }
 
         else {
             alarm.vibrationIsEnabled = false
-            binding!!.vibrationSwitch.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
-            binding!!.vibrationName.text = ContextCompat.getString(requireContext(), R.string.state_off)
+            binding?.vibrationSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
+            binding?.vibrationName?.text = ContextCompat.getString(requireContext(), R.string.state_off)
 
 
         }
@@ -120,22 +120,22 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     private fun changeDelAfterUseSwitch(isChecked: Boolean, alarm: Alarm) {
         if (isChecked) {
             alarm.delAfterUseIsEnabled = true
-            binding!!.delAfterUseSwitch.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple_500))
-            binding!!.delAfterUseState.text = ContextCompat.getString(requireContext(), R.string.state_on)
+            binding?.delAfterUseSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple_500))
+            binding?.delAfterUseState?.text = ContextCompat.getString(requireContext(), R.string.state_on)
 
         }
 
         else {
             alarm.delAfterUseIsEnabled = false
-            binding!!.delAfterUseSwitch.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
-            binding!!.delAfterUseState.text = ContextCompat.getString(requireContext(), R.string.state_off)
+            binding?.delAfterUseSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
+            binding?.delAfterUseState?.text = ContextCompat.getString(requireContext(), R.string.state_off)
 
 
         }
     }
 
     fun getAlarmTime(): String {
-        return binding!!.hour.text.toString() + ":" + binding!!.minute.text
+        return binding?.hour?.text.toString() + ":" + binding?.minute?.text
     }
 
     override fun onCreateView(
@@ -168,8 +168,8 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
 
 
                 val time = alarm.time
-                binding!!.hour.setText(time.substring(0, 2))
-                binding!!.minute.setText(time.substring(3, 5))
+                binding?.hour?.setText(time.substring(0, 2))
+                binding?.minute?.setText(time.substring(3, 5))
             }
         }
 
@@ -183,12 +183,12 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
         val alarmViewModel = AlarmViewModel(requireActivity().application)
 
         val newAlarm = Alarm()
-        newAlarm.time = "${binding!!.hour.text}:${binding!!.minute.text}"
+        newAlarm.time = "${binding?.hour?.text}:${binding?.minute?.text}"
         newAlarm.soundIsEnabled = binding!!.soundSwitch.isChecked
         newAlarm.vibrationIsEnabled = binding!!.vibrationSwitch.isChecked
         newAlarm.delAfterUseIsEnabled = binding!!.delAfterUseSwitch.isChecked
-        newAlarm.soundName = binding!!.soundName.text.toString()
-        newAlarm.vibrationName = binding!!.vibrationName.text.toString()
+        newAlarm.soundName = binding?.soundName?.text.toString()
+        newAlarm.vibrationName = binding?.vibrationName?.text.toString()
 
         changeWeekDay(binding!!.monday, binding!!.monday.isChecked, newAlarm, DayOfWeek.MONDAY)
         changeWeekDay(binding!!.tuesday, binding!!.tuesday.isChecked, newAlarm, DayOfWeek.TUESDAY)
@@ -203,7 +203,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
         
         changeAlarmDayText(newAlarm)
 
-        binding!!.hour.addTextChangedListener(object: TextWatcher {
+        binding?.hour?.addTextChangedListener(object: TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -216,11 +216,11 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
 
                     if (first !in "012" || (first == '2' && s.get(start) !in "0123"))
                         first = '0'
-                    binding!!.hour.setText("$first${s.get(start)}")
+                    binding?.hour?.setText("$first${s.get(start)}")
                 }
 
                 if (before == 1) {
-                    binding!!.hour.setText("0${s?.get((start + 1) % 2)}")
+                    binding?.hour?.setText("0${s?.get((start + 1) % 2)}")
                 }
 
                 newAlarm.time = getAlarmTime()
@@ -230,7 +230,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
             override fun afterTextChanged(s: Editable?) { }
         })
 
-        binding!!.minute.addTextChangedListener(object: TextWatcher {
+        binding?.minute?.addTextChangedListener(object: TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -243,11 +243,11 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
 
                     if (first in "6789")
                         first = '0'
-                    binding!!.minute.setText("$first${s.get(start)}")
+                    binding?.minute?.setText("$first${s.get(start)}")
                 }
 
                 if (before == 1) {
-                    binding!!.minute.setText("0${s?.get((start + 1) % 2)}")
+                    binding?.minute?.setText("0${s?.get((start + 1) % 2)}")
                 }
 
                 newAlarm.time = getAlarmTime()
@@ -257,48 +257,53 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
             override fun afterTextChanged(s: Editable?) { }
         })
 
-        binding!!.monday.setOnCheckedChangeListener { button, isChecked ->
+        binding?.monday?.setOnCheckedChangeListener { button, isChecked ->
             changeWeekDay(button, isChecked, newAlarm, DayOfWeek.MONDAY)
         }
-        binding!!.tuesday.setOnCheckedChangeListener { button, isChecked ->
+        binding?.tuesday?.setOnCheckedChangeListener { button, isChecked ->
             changeWeekDay(button, isChecked, newAlarm, DayOfWeek.TUESDAY)
         }
-        binding!!.wednesday.setOnCheckedChangeListener { button, isChecked ->
+        binding?.wednesday?.setOnCheckedChangeListener { button, isChecked ->
             changeWeekDay(button, isChecked, newAlarm, DayOfWeek.WEDNESDAY)
         }
-        binding!!.thursday.setOnCheckedChangeListener { button, isChecked ->
+        binding?.thursday?.setOnCheckedChangeListener { button, isChecked ->
             changeWeekDay(button, isChecked, newAlarm, DayOfWeek.THURSDAY)
         }
-        binding!!.friday.setOnCheckedChangeListener { button, isChecked ->
+        binding?.friday?.setOnCheckedChangeListener { button, isChecked ->
             changeWeekDay(button, isChecked, newAlarm, DayOfWeek.FRIDAY)
         }
-        binding!!.saturday.setOnCheckedChangeListener { button, isChecked ->
+        binding?.saturday?.setOnCheckedChangeListener { button, isChecked ->
             changeWeekDay(button, isChecked, newAlarm, DayOfWeek.SATURDAY)
         }
-        binding!!.sunday.setOnCheckedChangeListener { button, isChecked ->
+        binding?.sunday?.setOnCheckedChangeListener { button, isChecked ->
             changeWeekDay(button, isChecked, newAlarm, DayOfWeek.SUNDAY)
         }
 
 
-        binding!!.soundSwitch.setOnCheckedChangeListener { _, isChecked ->
+        binding?.soundSwitch?.setOnCheckedChangeListener { _, isChecked ->
             changeSoundSwitch(isChecked, newAlarm)
         }
 
-        binding!!.vibrationSwitch.setOnCheckedChangeListener { _, isChecked ->
+        binding?.vibrationSwitch?.setOnCheckedChangeListener { _, isChecked ->
             changeVibrationSwitch(isChecked, newAlarm)
         }
 
-        binding!!.delAfterUseSwitch.setOnCheckedChangeListener { _, isChecked ->
+        binding?.delAfterUseSwitch?.setOnCheckedChangeListener { _, isChecked ->
             changeDelAfterUseSwitch(isChecked, newAlarm)
         }
 
 
-        binding!!.cancelButton.setOnClickListener {
+//        binding?.alarmSound?.setOnClickListener {
+//            
+//        }
+
+
+        binding?.cancelButton?.setOnClickListener {
             findNavController().navigate(BuildAlarmsFragmentDirections.actionBuildToAlarms())
         }
 
-        binding!!.saveButton.setOnClickListener {
-            newAlarm.name = binding!!.alarmName.text.toString().trim()
+        binding?.saveButton?.setOnClickListener {
+            newAlarm.name = binding?.alarmName?.text.toString().trim()
             Utils.parseWeekSetToString(newAlarm)
 
             // Если есть будильник с тем же временем, то удаляем его AlarmReceiver

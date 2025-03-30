@@ -17,19 +17,21 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 object Utils {
-
+    // Обновляет weekDaysEnabled в экземпляре класса в соответствии со значением weekDaysEnabledSet
     fun parseWeekSetToString(alarm: Alarm) {
         alarm.weekDaysEnabledSet.forEach { el ->
             alarm.weekDaysEnabled += el.value.toString()
         }
     }
 
+    // Обновляет weekDaysEnabledSet в экземпляре класса в соответствии со значением строки weekDaysEnabled
     fun parseWeekStringToSet(alarm: Alarm) {
-        for (i in 0..<alarm.weekDaysEnabled.length) {
+        for (i in 0..< alarm.weekDaysEnabled.length) {
             alarm.weekDaysEnabledSet.add(DayOfWeek.of(alarm.weekDaysEnabled[i].digitToInt()))
         }
     }
 
+    // Возвращает дату, когда сработает ближайший будильник
     fun getAlarmDate(alarm: Alarm) : LocalDate {
         var alarmDate: LocalDate = LocalDate.now()
         val alarmTime = LocalTime.parse(alarm.time, DateTimeFormatter.ofPattern("HH:mm"))
@@ -37,6 +39,7 @@ object Utils {
         if (alarm.weekDaysEnabledSet.size in arrayOf(0, 7)) {
             if (alarmTime < LocalTime.now())
                 alarmDate = LocalDate.now().plusDays(1)
+            // Иначе alarmDate - сегодня
         }
 
         else {
@@ -58,6 +61,7 @@ object Utils {
         return alarmDate
     }
 
+    // Возвращает строку формата "день недели, число месяц", например: "Пт, 13 янв."
     fun getDayText(context: Context, date: LocalDate): String {
         var dayText = when (date.dayOfWeek!!) {
             DayOfWeek.MONDAY -> ContextCompat.getString(context, R.string.mon)
@@ -89,12 +93,14 @@ object Utils {
         return dayText
     }
 
+    // Возвращает PendingIntent для setAlarmClock()
     private fun getAlarmInfoPendingIntent(context: Context): PendingIntent {
         val alarmInfoIntent = Intent(context, MainActivity::class.java)
         alarmInfoIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         return PendingIntent.getActivity(context, 0, alarmInfoIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
+    // Создаёт уведомление о будильнике
     fun createAlarmReceiver(context: Context, id: Long, alarm: Alarm) {
         val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -120,7 +126,7 @@ object Utils {
         alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
     }
 
-
+    // Удаляет уведомление о будильнике
     fun delAlarmReceiver(context: Context, alarmId: Long) {
         val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
