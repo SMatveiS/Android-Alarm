@@ -7,6 +7,7 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -39,6 +40,23 @@ class AlarmsFragment: Fragment(R.layout.alarms_fragment), ShowAlarmsAdapter.OnAl
         binding?.nextAlarmText?.text = newText
     }
 
+    private fun showPopupMenu(view: View) {
+        val popupMenu = PopupMenu(requireContext(), view)
+        popupMenu.menuInflater.inflate(R.menu.popupmenu, popupMenu.menu)
+
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when(menuItem.itemId) {
+                R.id.action1 -> {
+                    findNavController().navigate(AlarmsFragmentDirections.actionAlarmsToChoiceAlarms(-2))
+                    true
+                }
+                else -> false
+            }
+        }
+
+        popupMenu.show()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -63,22 +81,13 @@ class AlarmsFragment: Fragment(R.layout.alarms_fragment), ShowAlarmsAdapter.OnAl
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val alarmViewModel = AlarmViewModel(requireActivity().application)
-
         binding?.newAlarmButton?.setOnClickListener {
             findNavController().navigate(AlarmsFragmentDirections.actionAlarmsToBuild())
         }
 
-
-
-//
-//        moreAction.setOnClickListener() {
-//
-//        }
-//
-//        alarms.setOnClickListener() {
-//
-//        }
+        binding?.moreActionButton?.setOnClickListener { buttonView ->
+            showPopupMenu(buttonView)
+        }
     }
 
     override fun onDestroyView() {

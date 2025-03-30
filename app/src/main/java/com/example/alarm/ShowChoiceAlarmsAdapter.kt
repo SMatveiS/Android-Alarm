@@ -22,16 +22,19 @@ class ShowChoiceAlarmsAdapter(
 ): RecyclerView.Adapter<ShowChoiceAlarmsAdapter.ViewHolder>() {
 
     interface OnAlarmClickListener {
-        fun changeCountSelectedAlarmText(alarmId: Long, option: Boolean, countAlarms: Int)
+        // Изменяет масиив выбранных будильников
+        fun changeSelectedAlarm(alarmId: Long, option: Boolean, countAlarms: Int)
     }
 
+    // Изменяет состояние выбранности будильника
     private fun changeSelectionState(holder: ViewHolder, alarmId: Long) {
         val newState = !holder.alarmIsSelected.isChecked
         holder.alarmIsSelected.isChecked = newState
 
-        listener.changeCountSelectedAlarmText(alarmId, newState, itemCount)
+        listener.changeSelectedAlarm(alarmId, newState, itemCount)
     }
 
+    // Возвращает текст для alarmDate в зависимости от weekDaysEnabledSet
     private fun getDateText(alarm: Alarm): SpannableString {
         val newText: SpannableString
         when (alarm.weekDaysEnabledSet.size) {
@@ -40,25 +43,16 @@ class ShowChoiceAlarmsAdapter(
             else -> {
                 val purple = ContextCompat.getColor(context, R.color.purple_500)
                 newText = SpannableString("П В С Ч П C В")
-                if (DayOfWeek.MONDAY in alarm.weekDaysEnabledSet) { newText.setSpan(
-                    ForegroundColorSpan(purple), 0, 1, 0) }
-                if (DayOfWeek.TUESDAY in alarm.weekDaysEnabledSet) { newText.setSpan(
-                    ForegroundColorSpan(purple), 2, 3, 0) }
-                if (DayOfWeek.WEDNESDAY in alarm.weekDaysEnabledSet) { newText.setSpan(
-                    ForegroundColorSpan(purple), 4, 5, 0) }
-                if (DayOfWeek.THURSDAY in alarm.weekDaysEnabledSet) { newText.setSpan(
-                    ForegroundColorSpan(purple), 6, 7, 0) }
-                if (DayOfWeek.FRIDAY in alarm.weekDaysEnabledSet) { newText.setSpan(
-                    ForegroundColorSpan(purple), 8, 9, 0) }
-                if (DayOfWeek.SATURDAY in alarm.weekDaysEnabledSet) { newText.setSpan(
-                    ForegroundColorSpan(purple), 10, 11, 0) }
-                if (DayOfWeek.SUNDAY in alarm.weekDaysEnabledSet) { newText.setSpan(
-                    ForegroundColorSpan(purple), 12, 13, 0) }
+                for (day in alarm.weekDaysEnabledSet) {
+                    val dayPositionStart = (day.value - 1) * 2
+                    newText.setSpan(ForegroundColorSpan(purple), dayPositionStart, dayPositionStart + 1, 0)
+                }
             }
         }
         return newText
     }
 
+    // Меняем цвета надписей в зависимости от состояния будильника
     private fun changeTextColor(holder: ViewHolder, state: Boolean) {
         val color = if (state)
             ContextCompat.getColor(context, R.color.white)
@@ -92,9 +86,11 @@ class ShowChoiceAlarmsAdapter(
         val alarm = alarms[position]
         Utils.parseWeekStringToSet(alarm)
 
+        // Делаем нужный будильник выбранным, если firstSelectedAlarm == -1, то выбраны все будильники, если -2, то ни одного
         if (alarm.id == firstSelectedAlarmId || firstSelectedAlarmId.toInt() == -1)
             changeSelectionState(holder, alarm.id)
 
+        // Если у будильника нет имени, то меняем его UI
         if (alarm.name == "") {
             val layoutParams = holder.alarmTime.layoutParams as ConstraintLayout.LayoutParams
             layoutParams.topToBottom = ConstraintLayout.LayoutParams.UNSET
