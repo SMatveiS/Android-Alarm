@@ -293,9 +293,9 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
         }
 
 
-//        binding?.alarmSound?.setOnClickListener {
-//            
-//        }
+        binding?.alarmSound?.setOnClickListener {
+            findNavController().navigate(BuildAlarmsFragmentDirections.actionBuildToSelectSound())
+        }
 
 
         binding?.cancelButton?.setOnClickListener {
