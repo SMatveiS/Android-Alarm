@@ -13,6 +13,24 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
 class AlarmReceiver: BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == "START_ALARM") {
+            // Если какой-то будильник работал в этот момент, то отключаем
+            NotificationManagerCompat.from(context).cancelAll()
+
+            if (intent.getBooleanExtra("HAVE_SOUND", false)) {
+                AlarmMusic.start(context)
+            }
+            if (intent.getBooleanExtra("HAVE_VIBRATION", false)) {
+                AlarmVibration.start(context)
+            }
+            createNotification(context, intent.getStringExtra("ALARM_NAME"))
+        } else if (intent.action == "STOP_ALARM") {
+            AlarmMusic.stop()
+            AlarmVibration.stop()
+            NotificationManagerCompat.from(context).cancel(2)
+        }
+    }
 
     private fun createNotification(context: Context, alarmName: String?) {
         val channelId = "alarm_channel"
@@ -55,21 +73,5 @@ class AlarmReceiver: BroadcastReceiver() {
             return
         }
         NotificationManagerCompat.from(context).notify(2, builder.build())
-    }
-
-    override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == "START_ALARM") {
-            // Если какой-то будильник работал в этот момент, то отключаем
-            AlarmMusic.stop()
-            NotificationManagerCompat.from(context).cancelAll()
-
-            AlarmMusic.start(context)
-            createNotification(context, intent.getStringExtra("ALARM_NAME"))
-        }
-
-        else if (intent.action == "STOP_ALARM") {
-            AlarmMusic.stop()
-            NotificationManagerCompat.from(context).cancel(2)
-        }
     }
 }

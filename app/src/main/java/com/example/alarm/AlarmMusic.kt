@@ -7,10 +7,12 @@ object AlarmMusic {
     private var music: MediaPlayer? = null
 
     fun start(context: Context) {
+        music?.release()
         if (music == null) {
             music = MediaPlayer.create(context, R.raw.linkin_park_numb)
         }
-        music!!.start()
+        music?.isLooping = true
+        music?.start()
     }
 
     fun stop() {
