@@ -106,9 +106,11 @@ object Utils {
 
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("ID", id)
             putExtra("ALARM_NAME", alarm.name)
             putExtra("HAVE_SOUND", alarm.soundIsEnabled)
             putExtra("HAVE_VIBRATION", alarm.vibrationIsEnabled)
+            putExtra("DEL_AFTER_USE", alarm.delAfterUseIsEnabled)
             setAction("START_ALARM")
         }
         val pendingIntent = PendingIntent.getBroadcast(
@@ -117,10 +119,6 @@ object Utils {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        // Удаляем AlarmReceiver, если он существует (иначе ничего не произойдёт)
-//        pendingIntent.cancel()
-//        alarmManager.cancel(pendingIntent)
 
         val alarmDate = getAlarmDate(alarm).atTime(LocalTime.parse(alarm.time, DateTimeFormatter.ofPattern("HH:mm")))
         val instant = alarmDate.atZone(ZoneId.systemDefault()).toInstant()
@@ -134,7 +132,7 @@ object Utils {
 
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            setAction("STOP_ALARM")
+            setAction("START_ALARM")
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,

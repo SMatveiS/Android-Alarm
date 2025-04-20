@@ -1,6 +1,7 @@
 package com.example.alarm
 
 import android.Manifest
+import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -14,21 +15,30 @@ import androidx.core.app.NotificationManagerCompat
 
 class AlarmReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        val alarmViewModel = AlarmViewModel(context.applicationContext as Application)
+
         if (intent.action == "START_ALARM") {
             // Если какой-то будильник работал в этот момент, то отключаем
             NotificationManagerCompat.from(context).cancelAll()
 
             if (intent.getBooleanExtra("HAVE_SOUND", false)) {
+                AlarmMusic.stop()
                 AlarmMusic.start(context)
             }
             if (intent.getBooleanExtra("HAVE_VIBRATION", false)) {
+                AlarmVibration.stop()
                 AlarmVibration.start(context)
             }
             createNotification(context, intent.getStringExtra("ALARM_NAME"))
+
+            if (intent.getBooleanExtra("DEL_AFTER_USE", false))
+                alarmViewModel.delById(setOf(intent.getLongExtra("ID", 0)))
+            else
+                alarmViewModel.changeAlarmState(intent.getLongExtra("ID", 0), false)
         } else if (intent.action == "STOP_ALARM") {
             AlarmMusic.stop()
             AlarmVibration.stop()
-            NotificationManagerCompat.from(context).cancel(2)
+            NotificationManagerCompat.from(context).cancelAll()
         }
     }
 
