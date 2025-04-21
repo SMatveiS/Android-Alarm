@@ -1,10 +1,6 @@
 package com.example.alarm
 
 import android.annotation.SuppressLint
-import android.app.AlarmManager
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.Editable
@@ -14,128 +10,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.alarm.databinding.BuildAlarmFragmentBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Date
 
 class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
-
     private var binding: BuildAlarmFragmentBinding? = null
     private val args: BuildAlarmsFragmentArgs by navArgs()
 
-
-    private fun changeAlarmDayText(alarm: Alarm) {
-        var newText: String
-        when (alarm.weekDaysEnabledSet.size) {
-            0 -> {
-                newText = if (Utils.getAlarmDate(alarm) == LocalDate.now())
-                    ContextCompat.getString(requireContext(), R.string.today) + Utils.getDayText(requireContext(), LocalDate.now())
-                else
-                    ContextCompat.getString(requireContext(), R.string.yesterday) + Utils.getDayText(requireContext(), LocalDate.now().plusDays(1))
-            }
-
-            7 -> newText = ContextCompat.getString(requireContext(), R.string.everyday)
-
-            else -> {
-                newText = resources.getString(R.string.every)
-
-                if (DayOfWeek.MONDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.mon) }
-                if (DayOfWeek.TUESDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.tue) }
-                if (DayOfWeek.WEDNESDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.wed) }
-                if (DayOfWeek.THURSDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.thu) }
-                if (DayOfWeek.FRIDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.fri) }
-                if (DayOfWeek.SATURDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.sat) }
-                if (DayOfWeek.SUNDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.sun) }
-                newText = newText.substring(0, newText.length - 2)
-            }
-        }
-
-        binding?.alarmDayText?.text = newText
-    }
-
-    private fun changeWeekDay(button: CompoundButton, isChecked: Boolean, alarm: Alarm, dayOfWeek: DayOfWeek) {
-        if (isChecked) {
-            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.purple))
-            alarm.weekDaysEnabledSet.add(dayOfWeek)
-        }
-
-        else {
-            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-            alarm.weekDaysEnabledSet.remove(dayOfWeek)
-        }
-
-        changeAlarmDayText(alarm)
-    }
-
-    private fun changeSoundSwitch(isChecked: Boolean, alarm: Alarm) {
-        if (isChecked) {
-            alarm.soundIsEnabled = true
-            binding?.soundSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
-            binding?.soundName?.text = "default"
-
-
-        }
-
-        else {
-            alarm.soundIsEnabled = false
-            binding?.soundSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
-            binding?.soundName?.text = ContextCompat.getString(requireContext(), R.string.state_off)
-
-
-        }
-    }
-
-    private fun changeVibrationSwitch(isChecked: Boolean, alarm: Alarm) {
-        if (isChecked) {
-            alarm.vibrationIsEnabled = true
-            binding?.vibrationSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
-            binding?.vibrationName?.text = "default"
-
-
-        }
-
-        else {
-            alarm.vibrationIsEnabled = false
-            binding?.vibrationSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
-            binding?.vibrationName?.text = ContextCompat.getString(requireContext(), R.string.state_off)
-
-
-        }
-    }
-
-    private fun changeDelAfterUseSwitch(isChecked: Boolean, alarm: Alarm) {
-        if (isChecked) {
-            alarm.delAfterUseIsEnabled = true
-            binding?.delAfterUseSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
-            binding?.delAfterUseState?.text = ContextCompat.getString(requireContext(), R.string.state_on)
-
-        }
-
-        else {
-            alarm.delAfterUseIsEnabled = false
-            binding?.delAfterUseSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
-            binding?.delAfterUseState?.text = ContextCompat.getString(requireContext(), R.string.state_off)
-
-
-        }
-    }
-
-    fun getAlarmTime(): String {
-        return binding?.hour?.text.toString() + ":" + binding?.minute?.text
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -291,11 +179,9 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
             changeDelAfterUseSwitch(isChecked, newAlarm)
         }
 
-
         binding?.alarmSound?.setOnClickListener {
             findNavController().navigate(BuildAlarmsFragmentDirections.actionBuildToSelectSound())
         }
-
 
         binding?.cancelButton?.setOnClickListener {
             findNavController().navigate(BuildAlarmsFragmentDirections.actionBuildToAlarms())
@@ -320,8 +206,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
                     val alarmId = alarmViewModel.insert(newAlarm)
                     Utils.createAlarmReceiver(requireContext(), alarmId, newAlarm)
                 }
-            }
-            else {
+            } else {
                 newAlarm.id = args.alarmId
                 alarmViewModel.updateAlarm(newAlarm)
                 Utils.createAlarmReceiver(requireContext(), newAlarm.id, newAlarm)
@@ -334,5 +219,96 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     override fun onDestroyView() {
         super.onDestroyView()
         binding = null
+    }
+
+
+    private fun changeAlarmDayText(alarm: Alarm) {
+        var newText: String
+        when (alarm.weekDaysEnabledSet.size) {
+            0 -> {
+                newText = if (Utils.getAlarmDate(alarm) == LocalDate.now())
+                    ContextCompat.getString(requireContext(), R.string.today) + Utils.getDayText(requireContext(), LocalDate.now())
+                else
+                    ContextCompat.getString(requireContext(), R.string.yesterday) + Utils.getDayText(requireContext(), LocalDate.now().plusDays(1))
+            }
+
+            7 -> newText = ContextCompat.getString(requireContext(), R.string.everyday)
+
+            else -> {
+                newText = resources.getString(R.string.every)
+
+                if (DayOfWeek.MONDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.mon) }
+                if (DayOfWeek.TUESDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.tue) }
+                if (DayOfWeek.WEDNESDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.wed) }
+                if (DayOfWeek.THURSDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.thu) }
+                if (DayOfWeek.FRIDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.fri) }
+                if (DayOfWeek.SATURDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.sat) }
+                if (DayOfWeek.SUNDAY in alarm.weekDaysEnabledSet) { newText += ContextCompat.getString(requireContext(), R.string.sun) }
+                newText = newText.substring(0, newText.length - 2)
+            }
+        }
+
+        binding?.alarmDayText?.text = newText
+    }
+
+    private fun changeWeekDay(button: CompoundButton, isChecked: Boolean, alarm: Alarm, dayOfWeek: DayOfWeek) {
+        if (isChecked) {
+            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.purple))
+            alarm.weekDaysEnabledSet.add(dayOfWeek)
+        } else {
+            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+            alarm.weekDaysEnabledSet.remove(dayOfWeek)
+        }
+
+        changeAlarmDayText(alarm)
+    }
+
+    private fun changeSoundSwitch(isChecked: Boolean, alarm: Alarm) {
+        if (isChecked) {
+            alarm.soundIsEnabled = true
+            binding?.soundSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
+            binding?.soundName?.text = "default"
+
+
+        } else {
+            alarm.soundIsEnabled = false
+            binding?.soundSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
+            binding?.soundName?.text = ContextCompat.getString(requireContext(), R.string.state_off)
+
+
+        }
+    }
+
+    private fun changeVibrationSwitch(isChecked: Boolean, alarm: Alarm) {
+        if (isChecked) {
+            alarm.vibrationIsEnabled = true
+            binding?.vibrationSwitch?.trackTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
+            binding?.vibrationName?.text = "default"
+
+
+        } else {
+            alarm.vibrationIsEnabled = false
+            binding?.vibrationSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
+            binding?.vibrationName?.text = ContextCompat.getString(requireContext(), R.string.state_off)
+
+
+        }
+    }
+
+    private fun changeDelAfterUseSwitch(isChecked: Boolean, alarm: Alarm) {
+        if (isChecked) {
+            alarm.delAfterUseIsEnabled = true
+            binding?.delAfterUseSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
+            binding?.delAfterUseState?.text = ContextCompat.getString(requireContext(), R.string.state_on)
+        } else {
+            alarm.delAfterUseIsEnabled = false
+            binding?.delAfterUseSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
+            binding?.delAfterUseState?.text = ContextCompat.getString(requireContext(), R.string.state_off)
+        }
+    }
+
+    fun getAlarmTime(): String {
+        return binding?.hour?.text.toString() + ":" + binding?.minute?.text
     }
 }

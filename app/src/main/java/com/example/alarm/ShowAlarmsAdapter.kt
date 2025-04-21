@@ -36,6 +36,81 @@ class ShowAlarmsAdapter(
         fun changeUiToChooseAlarms(alarmId: Long)
     }
 
+    class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
+        val alarm: ConstraintLayout = view.findViewById(R.id.alarm)
+        val alarmName: TextView = view.findViewById(R.id.alarm_name)
+        val alarmTime: TextView = view.findViewById(R.id.alarm_time)
+        val alarmDate: TextView = view.findViewById(R.id.alarm_date)
+        val alarmState: SwitchMaterial = view.findViewById(R.id.alarm_state)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.saved_alarm, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun getItemCount(): Int {
+        return alarms.size
+    }
+
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        if (position == 0) {
+            alarms.forEach { alarm ->
+                if (alarm.alarmIsEnabled)
+                    enabledAlarms.add(alarm)
+            }
+            createAndChangeNextAlarmText()
+        }
+
+        val alarm = alarms[position]
+        Utils.parseWeekStringToSet(alarm)
+
+        // Если у будильника нет имени, то меняем его UI
+        if (alarm.name == "") {
+            val layoutParams = holder.alarmTime.layoutParams as ConstraintLayout.LayoutParams
+            layoutParams.topToBottom = ConstraintLayout.LayoutParams.UNSET
+            layoutParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            layoutParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+        } else
+            holder.alarmName.text = alarm.name
+
+        holder.alarmDate.text = getDateText(alarm)
+        holder.alarmTime.text = alarm.time
+        changeAlarmUI(holder, alarm.alarmIsEnabled)
+
+        if (!alarm.alarmIsEnabled)
+            holder.alarmState.isChecked = false
+
+
+        holder.alarmState.setOnCheckedChangeListener {_, isChecked ->
+            alarmViewModel.changeAlarmState(alarm.id, isChecked)
+            alarm.alarmIsEnabled = isChecked
+            changeAlarmUI(holder, isChecked)
+
+            if (isChecked) {
+                enabledAlarms.add(alarm)
+                Utils.createAlarmReceiver(context, alarm.id, alarm)
+            } else {
+                enabledAlarms.remove(enabledAlarms.find { it.id == alarm.id })
+                Utils.delAlarmReceiver(context, alarm.id)
+            }
+
+            createAndChangeNextAlarmText()
+        }
+
+        holder.alarm.setOnClickListener {
+            listener.changeAlarm(alarm.id)
+        }
+
+        holder.alarm.setOnLongClickListener {
+            listener.changeUiToChooseAlarms(alarm.id)
+            true
+        }
+    }
+
+
     // Возвращает время, оставшееся до будильника
     private fun getTimeBeforeAlarm(alarm: Alarm): Duration {
         val alarmDate = Utils.getAlarmDate(alarm)
@@ -53,8 +128,7 @@ class ShowAlarmsAdapter(
             if (nearestAlarm == null) {
                 nearestAlarm = alarm
                 timeBeforeNearestAlarm = timeBeforeAlarm
-            }
-            else if (timeBeforeNearestAlarm!! > timeBeforeAlarm) {
+            } else if (timeBeforeNearestAlarm!! > timeBeforeAlarm) {
                 timeBeforeNearestAlarm = timeBeforeAlarm
                 nearestAlarm = alarm
             }
@@ -110,8 +184,7 @@ class ShowAlarmsAdapter(
         if (state) {
             color = ContextCompat.getColor(context, R.color.white)
             holder.alarmState.trackTintList = ColorStateList.valueOf(purple)
-        }
-        else {
+        } else {
             color = lightGrey
             holder.alarmState.trackTintList = ColorStateList.valueOf(lightGrey)
         }
@@ -119,81 +192,5 @@ class ShowAlarmsAdapter(
         holder.alarmName.setTextColor(color)
         holder.alarmTime.setTextColor(color)
         holder.alarmDate.setTextColor(color)
-    }
-
-    class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
-        val alarm: ConstraintLayout = view.findViewById(R.id.alarm)
-        val alarmName: TextView = view.findViewById(R.id.alarm_name)
-        val alarmTime: TextView = view.findViewById(R.id.alarm_time)
-        val alarmDate: TextView = view.findViewById(R.id.alarm_date)
-        val alarmState: SwitchMaterial = view.findViewById(R.id.alarm_state)
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.saved_alarm, parent, false)
-        return ViewHolder(view)
-    }
-
-    override fun getItemCount(): Int {
-        return alarms.size
-    }
-
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        if (position == 0) {
-            alarms.forEach { alarm ->
-                if (alarm.alarmIsEnabled)
-                    enabledAlarms.add(alarm)
-            }
-            createAndChangeNextAlarmText()
-        }
-
-        val alarm = alarms[position]
-        Utils.parseWeekStringToSet(alarm)
-
-        // Если у будильника нет имени, то меняем его UI
-        if (alarm.name == "") {
-            val layoutParams = holder.alarmTime.layoutParams as ConstraintLayout.LayoutParams
-            layoutParams.topToBottom = ConstraintLayout.LayoutParams.UNSET
-            layoutParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-            layoutParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-        }
-        else
-            holder.alarmName.text = alarm.name
-
-        holder.alarmDate.text = getDateText(alarm)
-        holder.alarmTime.text = alarm.time
-        changeAlarmUI(holder, alarm.alarmIsEnabled)
-
-        if (!alarm.alarmIsEnabled)
-            holder.alarmState.isChecked = false
-
-
-        holder.alarmState.setOnCheckedChangeListener {_, isChecked ->
-            alarmViewModel.changeAlarmState(alarm.id, isChecked)
-            alarm.alarmIsEnabled = isChecked
-            changeAlarmUI(holder, isChecked)
-
-            if (isChecked) {
-                enabledAlarms.add(alarm)
-                Utils.createAlarmReceiver(context, alarm.id, alarm)
-            }
-            else {
-                enabledAlarms.remove(enabledAlarms.find { it.id == alarm.id })
-                Utils.delAlarmReceiver(context, alarm.id)
-            }
-
-            createAndChangeNextAlarmText()
-        }
-
-        holder.alarm.setOnClickListener {
-            listener.changeAlarm(alarm.id)
-        }
-
-        holder.alarm.setOnLongClickListener {
-            listener.changeUiToChooseAlarms(alarm.id)
-            true
-        }
     }
 }

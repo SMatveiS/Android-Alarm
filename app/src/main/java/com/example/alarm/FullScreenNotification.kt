@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter
 
 class FullScreenNotification : AppCompatActivity() {
     private var binding: FullScreenNotificationBinding? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

@@ -22,7 +22,7 @@ class ChoiceAlarmsFragment: Fragment(R.layout.choice_alarms_fragment), ShowChoic
     // Множество из выбранных будильников
     private val selectedAlarms: MutableSet<Long> = mutableSetOf()
 
-    // Добавляет или удаляет будильник из selectedAlarms и меняет интерфейс 
+    // Добавляет или удаляет будильник из selectedAlarms и изменяет интерфейс
     override fun changeSelectedAlarm(alarmId: Long, option: Boolean, countAlarms: Int) {
         if (option) {
             selectedAlarms.add(alarmId)
