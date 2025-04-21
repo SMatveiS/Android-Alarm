@@ -16,6 +16,7 @@ import androidx.core.app.NotificationManagerCompat
 class AlarmReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val alarmViewModel = AlarmViewModel(context.applicationContext as Application)
+        val alarmId = intent.getLongExtra("ID", 0)
 
         if (intent.action == "START_ALARM") {
             // Если какой-то будильник работал в этот момент, то отключаем
@@ -29,20 +30,20 @@ class AlarmReceiver: BroadcastReceiver() {
                 AlarmVibration.stop()
                 AlarmVibration.start(context)
             }
-            createNotification(context, intent.getStringExtra("ALARM_NAME"))
+            createNotification(context, intent.getStringExtra("ALARM_NAME"), alarmId.toInt())
 
             if (intent.getBooleanExtra("DEL_AFTER_USE", false))
-                alarmViewModel.delById(setOf(intent.getLongExtra("ID", 0)))
+                alarmViewModel.delById(setOf(alarmId))
             else
-                alarmViewModel.changeAlarmState(intent.getLongExtra("ID", 0), false)
+                alarmViewModel.changeAlarmState(alarmId, false)
         } else if (intent.action == "STOP_ALARM") {
             AlarmMusic.stop()
             AlarmVibration.stop()
-            NotificationManagerCompat.from(context).cancelAll()
+            NotificationManagerCompat.from(context).cancel(alarmId.toInt())
         }
     }
 
-    private fun createNotification(context: Context, alarmName: String?) {
+    private fun createNotification(context: Context, alarmName: String?, alarmId: Int) {
         val channelId = "alarm_channel"
         val channelName = "Alarm Channel"
 
@@ -51,12 +52,16 @@ class AlarmReceiver: BroadcastReceiver() {
         notificationManager.createNotificationChannel(channel)
 
         val fullScreenIntent = Intent(context, FullScreenNotification::class.java).apply {
+            putExtra("ID", alarmId)
             putExtra("ALARM_NAME", alarmName)
         }
-        val fullScreenPendingIntent = PendingIntent.getActivity(context, 0, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val fullScreenPendingIntent = PendingIntent.getActivity(context, alarmId, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-        val stopAlarmIntent = Intent(context, AlarmReceiver::class.java).setAction("STOP_ALARM")
-        val stopAlarmPendingIntent = PendingIntent.getBroadcast(context, 3, stopAlarmIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val stopAlarmIntent = Intent(context, AlarmReceiver::class.java).apply {
+            putExtra("ID", alarmId.toLong())
+            setAction("STOP_ALARM")
+        }
+        val stopAlarmPendingIntent = PendingIntent.getBroadcast(context, alarmId, stopAlarmIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.access_alarm)
@@ -82,6 +87,6 @@ class AlarmReceiver: BroadcastReceiver() {
 
             return
         }
-        NotificationManagerCompat.from(context).notify(2, builder.build())
+        NotificationManagerCompat.from(context).notify(alarmId, builder.build())
     }
 }

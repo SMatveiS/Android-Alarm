@@ -24,7 +24,7 @@ class ShowAlarmsAdapter(
     private val listener: OnAlarmClickListener
 ): RecyclerView.Adapter<ShowAlarmsAdapter.ViewHolder>() {
 
-    private val purple = ContextCompat.getColor(context, R.color.purple_500)
+    private val purple = ContextCompat.getColor(context, R.color.purple)
     private val lightGrey = ContextCompat.getColor(context, R.color.light_grey)
 
     private val enabledAlarms: MutableList<Alarm> = mutableListOf()

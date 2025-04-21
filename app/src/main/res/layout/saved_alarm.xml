@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/alarm"
     android:layout_width="match_parent"
-    android:layout_height="100dp"
+    android:layout_height="110dp"
     android:layout_marginBottom="10dp"
     android:clickable="true"
     android:background="@drawable/rounded_view_for_alarm" >
@@ -53,7 +53,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="15dp"
         android:checked="true"
-        app:trackTint="@color/purple_500"
+        app:trackTint="@color/purple"
         app:thumbTint="@color/white"
 
         app:layout_constraintEnd_toEndOf="parent"

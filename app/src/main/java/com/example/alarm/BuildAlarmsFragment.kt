@@ -37,7 +37,6 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     private val args: BuildAlarmsFragmentArgs by navArgs()
 
 
-
     private fun changeAlarmDayText(alarm: Alarm) {
         var newText: String
         when (alarm.weekDaysEnabledSet.size) {
@@ -69,7 +68,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
 
     private fun changeWeekDay(button: CompoundButton, isChecked: Boolean, alarm: Alarm, dayOfWeek: DayOfWeek) {
         if (isChecked) {
-            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.purple_500))
+            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.purple))
             alarm.weekDaysEnabledSet.add(dayOfWeek)
         }
 
@@ -84,7 +83,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     private fun changeSoundSwitch(isChecked: Boolean, alarm: Alarm) {
         if (isChecked) {
             alarm.soundIsEnabled = true
-            binding?.soundSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple_500))
+            binding?.soundSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
             binding?.soundName?.text = "default"
 
 
@@ -102,7 +101,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     private fun changeVibrationSwitch(isChecked: Boolean, alarm: Alarm) {
         if (isChecked) {
             alarm.vibrationIsEnabled = true
-            binding?.vibrationSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple_500))
+            binding?.vibrationSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
             binding?.vibrationName?.text = "default"
 
 
@@ -120,7 +119,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     private fun changeDelAfterUseSwitch(isChecked: Boolean, alarm: Alarm) {
         if (isChecked) {
             alarm.delAfterUseIsEnabled = true
-            binding?.delAfterUseSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple_500))
+            binding?.delAfterUseSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
             binding?.delAfterUseState?.text = ContextCompat.getString(requireContext(), R.string.state_on)
 
         }

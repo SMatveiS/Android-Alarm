@@ -25,7 +25,7 @@
         <item name="android:layout_marginTop">0dp</item>
         <item name="android:layout_marginBottom">15dp</item>
         <item name="android:layout_marginStart">25dp</item>
-        <item name="android:textColor">@color/purple_500</item>
+        <item name="android:textColor">@color/purple</item>
         <item name="android:textSize">16sp</item>
     </style>
 
@@ -34,11 +34,11 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginEnd">25dp</item>
         <item name="android:checked">true</item>
-        <item name="trackTint">@color/purple_500</item>
+        <item name="trackTint">@color/purple</item>
         <item name="thumbTint">@color/white</item>
     </style>
 
     <style name="MyCheckBox" parent="ThemeOverlay.AppCompat.Dark">
-        <item name="colorControlActivated">@color/purple_500</item>
+        <item name="colorControlActivated">@color/purple</item>
     </style>
 </resources>

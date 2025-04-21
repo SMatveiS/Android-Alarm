@@ -22,7 +22,7 @@ class FullScreenNotification : AppCompatActivity() {
 
         binding!!.dismiss.setOnClickListener {
             AlarmMusic.stop()
-            NotificationManagerCompat.from(this).cancel(2)
+            NotificationManagerCompat.from(this).cancel(intent.getIntExtra("ID", 0))
         }
     }
 }

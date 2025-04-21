@@ -41,7 +41,7 @@ class ShowChoiceAlarmsAdapter(
             0 -> newText = SpannableString(Utils.getDayText(context, Utils.getAlarmDate(alarm)))
             7 -> newText = SpannableString(ContextCompat.getString(context, R.string.everyday))
             else -> {
-                val purple = ContextCompat.getColor(context, R.color.purple_500)
+                val purple = ContextCompat.getColor(context, R.color.purple)
                 newText = SpannableString("П В С Ч П C В")
                 for (day in alarm.weekDaysEnabledSet) {
                     val dayPositionStart = (day.value - 1) * 2

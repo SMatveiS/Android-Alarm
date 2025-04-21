@@ -44,16 +44,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <ImageButton
+    <Button
         android:id="@+id/dismiss"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
+        android:layout_width="150dp"
+        android:layout_height="60dp"
         android:layout_marginBottom="125dp"
-        android:contentDescription="@string/dismiss"
-        android:src="@drawable/cancel_alarm"
-        android:background="@color/black"
+        android:text="@string/dismiss"
+        android:background="@color/purple"
 
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
