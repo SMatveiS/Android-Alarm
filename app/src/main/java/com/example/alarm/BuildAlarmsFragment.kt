@@ -1,7 +1,10 @@
 package com.example.alarm
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -9,6 +12,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -23,6 +28,9 @@ import java.time.LocalDate
 class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     private var binding: BuildAlarmFragmentBinding? = null
     private val args: BuildAlarmsFragmentArgs by navArgs()
+
+    private var isNotificationPermissionGranted = false
+    private var isReadMediaAudioPermissionGranted = false
 
 
     override fun onCreateView(
@@ -188,13 +196,19 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
         }
 
         binding?.saveButton?.setOnClickListener {
+            checkAndRequestPermissions(newAlarm.vibrationIsEnabled)
+
             newAlarm.name = binding?.alarmName?.text.toString().trim()
             Utils.parseWeekSetToString(newAlarm)
 
             // Если есть будильник с тем же временем, то удаляем его AlarmReceiver
             CoroutineScope(Dispatchers.IO).launch {
-                val idOfSimilarAlarm = alarmViewModel.getSimilarAlarm(args.alarmId, newAlarm.time, newAlarm.weekDaysEnabled)
-                idOfSimilarAlarm?.let {  Utils.delAlarmReceiver(requireContext(), idOfSimilarAlarm) }
+                val idOfSimilarAlarm = alarmViewModel.getSimilarAlarm(
+                    args.alarmId,
+                    newAlarm.time,
+                    newAlarm.weekDaysEnabled
+                )
+                idOfSimilarAlarm?.let { Utils.delAlarmReceiver(requireContext(), idOfSimilarAlarm) }
             }
             // И удаляем его из бд (Нельзя сделать оба действия сразу,
             // так как будильник не успеет удалиться из бд, до того как его извлекут в AlarmsFragment)
@@ -284,15 +298,11 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
             alarm.vibrationIsEnabled = true
             binding?.vibrationSwitch?.trackTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
-            binding?.vibrationName?.text = "default"
-
-
+            binding?.vibrationName?.text = ContextCompat.getString(requireContext(), R.string.state_on)
         } else {
             alarm.vibrationIsEnabled = false
             binding?.vibrationSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
             binding?.vibrationName?.text = ContextCompat.getString(requireContext(), R.string.state_off)
-
-
         }
     }
 
@@ -308,7 +318,34 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
         }
     }
 
-    fun getAlarmTime(): String {
+    private fun getAlarmTime(): String {
         return binding?.hour?.text.toString() + ":" + binding?.minute?.text
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private val permissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()) {permissions ->
+        isNotificationPermissionGranted = permissions[Manifest.permission.POST_NOTIFICATIONS]?:isNotificationPermissionGranted
+        isReadMediaAudioPermissionGranted = permissions[Manifest.permission.READ_MEDIA_AUDIO]?:isReadMediaAudioPermissionGranted
+    }
+
+    private fun checkAndRequestPermissions(selectVibration: Boolean) {
+        // Если API 33 или больше, то явные разрешения не требуются
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Сначала проверим и попросим разрешение на уведомления
+            isNotificationPermissionGranted = ContextCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            isReadMediaAudioPermissionGranted = ContextCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
+
+            val permissionRequest: MutableList<String> = ArrayList()
+            if (!isNotificationPermissionGranted)
+                permissionRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+            if (!isReadMediaAudioPermissionGranted && selectVibration)
+                permissionRequest.add(Manifest.permission.READ_MEDIA_AUDIO)
+
+            if (permissionRequest.isNotEmpty())
+                permissionsLauncher.launch(permissionRequest.toTypedArray())
+        }
     }
 }
