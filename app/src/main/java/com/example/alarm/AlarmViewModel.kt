@@ -1,10 +1,9 @@
 package com.example.alarm
 
 import android.app.Application
-import android.content.Context
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.launch
 
 class AlarmViewModel(application: Application) : AndroidViewModel(application) {
@@ -14,7 +13,7 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         return alarmDao.insertAlarm(alarm)
     }
 
-    suspend fun allAlarms(): List<Alarm> {
+    fun allAlarms(): LiveData<List<Alarm>> {
         return alarmDao.getAll()
     }
 
@@ -26,12 +25,8 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         return alarmDao.getSimilarAlarm(alarmId, alarmTime, alarmWeekDaysEnabled)
     }
 
-    fun delById(alarmsId: Set<Long>) = viewModelScope.launch {
+    fun delById(alarmsId: Long) = viewModelScope.launch {
         alarmDao.deleteById(alarmsId)
-    }
-
-    fun delSimilarAlarm(alarmId: Long, alarmTime: String, alarmWeekDaysEnabled: String) = viewModelScope.launch {
-        alarmDao.deleteSimilarAlarm(alarmId, alarmTime, alarmWeekDaysEnabled)
     }
 
     fun changeAlarmState(alarmId: Long, newState: Boolean) = viewModelScope.launch {

@@ -16,7 +16,7 @@ data class Alarm(
     var soundName: String = "default",
     var vibrationIsEnabled: Boolean = true,
     var vibrationName: String = "default",
-    var delAfterUseIsEnabled: Boolean = true,
+    var delAfterUseIsEnabled: Boolean = false,
 
     var weekDaysEnabled: String = "",
 )

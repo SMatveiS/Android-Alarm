@@ -33,7 +33,7 @@ class AlarmReceiver: BroadcastReceiver() {
             createNotification(context, intent.getStringExtra("ALARM_NAME"), alarmId.toInt())
 
             if (intent.getBooleanExtra("DEL_AFTER_USE", false))
-                alarmViewModel.delById(setOf(alarmId))
+                alarmViewModel.delById(alarmId)
             else
                 alarmViewModel.changeAlarmState(alarmId, false)
         } else if (intent.action == "STOP_ALARM") {

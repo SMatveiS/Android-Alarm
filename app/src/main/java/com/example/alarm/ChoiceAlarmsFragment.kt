@@ -10,10 +10,6 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.alarm.databinding.ChoiceAlarmsFragmentBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ChoiceAlarmsFragment: Fragment(R.layout.choice_alarms_fragment), ShowChoiceAlarmsAdapter.OnAlarmClickListener {
 
@@ -53,11 +49,9 @@ class ChoiceAlarmsFragment: Fragment(R.layout.choice_alarms_fragment), ShowChoic
         val recyclerView: RecyclerView = binding!!.alarms
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val alarms = alarmViewModel.allAlarms()
-            withContext(Dispatchers.Main) {
-                recyclerView.adapter = ShowChoiceAlarmsAdapter(requireContext(), args.alarmId, alarms, this@ChoiceAlarmsFragment)
-            }
+        val alarms = alarmViewModel.allAlarms()
+        alarms.observe(viewLifecycleOwner) { currAlarms ->
+            recyclerView.adapter = ShowChoiceAlarmsAdapter(requireContext(), args.alarmId, currAlarms, this@ChoiceAlarmsFragment)
         }
 
         return binding!!.root
@@ -73,11 +67,9 @@ class ChoiceAlarmsFragment: Fragment(R.layout.choice_alarms_fragment), ShowChoic
 
         binding?.selectAllAlarms?.setOnClickListener {
             if (binding!!.selectAllAlarms.isChecked) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val alarms = alarmViewModel.allAlarms()
-                    withContext(Dispatchers.Main) {
-                        recyclerView.adapter = ShowChoiceAlarmsAdapter(requireContext(), -1, alarms, this@ChoiceAlarmsFragment)
-                    }
+                val alarms = alarmViewModel.allAlarms()
+                alarms.observe(viewLifecycleOwner) { currAlarms ->
+                    recyclerView.adapter = ShowChoiceAlarmsAdapter(requireContext(), -1, currAlarms, this@ChoiceAlarmsFragment)
                 }
             }
             else
@@ -85,10 +77,9 @@ class ChoiceAlarmsFragment: Fragment(R.layout.choice_alarms_fragment), ShowChoic
         }
 
         binding?.deleteButton?.setOnClickListener {
-            // Удаляем будильники из бд
-            alarmViewModel.delById(selectedAlarms)
-            // Удаляем AlarmReceiver-ы)
+            // Удаляем будильники из БД и AlarmReceiver-ы)
             for (alarmId in selectedAlarms) {
+                alarmViewModel.delById(alarmId)
                 Utils.delAlarmReceiver(requireContext(), alarmId)
             }
             findNavController().navigate(ChoiceAlarmsFragmentDirections.actionChoiceToAlarms())

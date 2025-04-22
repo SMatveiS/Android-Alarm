@@ -14,10 +14,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.alarm.databinding.AlarmsFragmentBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class AlarmsFragment: Fragment(R.layout.alarms_fragment), ShowAlarmsAdapter.OnAlarmClickListener {
 
@@ -29,23 +25,22 @@ class AlarmsFragment: Fragment(R.layout.alarms_fragment), ShowAlarmsAdapter.OnAl
         savedInstanceState: Bundle?
     ): View {
         binding = AlarmsFragmentBinding.inflate(inflater, container, false)
-        val alarmViewModel = AlarmViewModel(requireActivity().application)
-
-        val recyclerView: RecyclerView = binding!!.alarms
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-        CoroutineScope(Dispatchers.IO).launch {
-            val alarms = alarmViewModel.allAlarms()
-            withContext(Dispatchers.Main) {
-                recyclerView.adapter = ShowAlarmsAdapter(requireContext(), alarms, this@AlarmsFragment)
-            }
-        }
 
         return binding!!.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val alarmViewModel = AlarmViewModel(requireActivity().application)
+
+        val recyclerView: RecyclerView = binding!!.alarms
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        val alarms = alarmViewModel.allAlarms()
+        // Подписываемся на обновление БД
+        alarms.observe(viewLifecycleOwner) { newAlarms ->
+            recyclerView.adapter = ShowAlarmsAdapter(requireContext(), newAlarms, this@AlarmsFragment)
+        }
 
         binding?.newAlarmButton?.setOnClickListener {
             findNavController().navigate(AlarmsFragmentDirections.actionAlarmsToBuild())

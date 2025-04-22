@@ -52,6 +52,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
 
                 changeSoundSwitch(alarm.soundIsEnabled, alarm)
                 changeVibrationSwitch(alarm.vibrationIsEnabled, alarm)
+                changeDelAfterUseSwitch(alarm.delAfterUseIsEnabled, alarm)
 
                 binding!!.monday.isChecked = '1' in alarm.weekDaysEnabled
                 binding!!.tuesday.isChecked = '2' in alarm.weekDaysEnabled
@@ -100,7 +101,6 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
 
         binding?.hour?.addTextChangedListener(object: TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
-
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (count  == 1) {
                     var first: Char
@@ -127,7 +127,6 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
 
         binding?.minute?.addTextChangedListener(object: TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
-
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (count  == 1) {
                     var first: Char
@@ -201,18 +200,18 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
             newAlarm.name = binding?.alarmName?.text.toString().trim()
             Utils.parseWeekSetToString(newAlarm)
 
-            // Если есть будильник с тем же временем, то удаляем его AlarmReceiver
+            // Если есть будильник с тем же временем, то удаляем его AlarmReceiver и удаляем его из бд
             CoroutineScope(Dispatchers.IO).launch {
                 val idOfSimilarAlarm = alarmViewModel.getSimilarAlarm(
                     args.alarmId,
                     newAlarm.time,
                     newAlarm.weekDaysEnabled
                 )
-                idOfSimilarAlarm?.let { Utils.delAlarmReceiver(requireContext(), idOfSimilarAlarm) }
+                idOfSimilarAlarm?.let {
+                    alarmViewModel.delById(idOfSimilarAlarm)
+                    Utils.delAlarmReceiver(requireContext(), idOfSimilarAlarm)
+                }
             }
-            // И удаляем его из бд (Нельзя сделать оба действия сразу,
-            // так как будильник не успеет удалиться из бд, до того как его извлекут в AlarmsFragment)
-            alarmViewModel.delSimilarAlarm(args.alarmId, newAlarm.time, newAlarm.weekDaysEnabled)
 
             // Добавляем либо обновляем будильник в бд
             if (args.alarmId == (-1).toLong()) {
@@ -278,15 +277,16 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     }
 
     private fun changeSoundSwitch(isChecked: Boolean, alarm: Alarm) {
+        alarm.soundIsEnabled = isChecked
         if (isChecked) {
-            alarm.soundIsEnabled = true
-            binding?.soundSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
+            binding?.soundSwitch?.trackTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
             binding?.soundName?.text = "default"
 
 
         } else {
-            alarm.soundIsEnabled = false
-            binding?.soundSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
+            binding?.soundSwitch?.trackTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
             binding?.soundName?.text = ContextCompat.getString(requireContext(), R.string.state_off)
 
 
@@ -294,26 +294,27 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     }
 
     private fun changeVibrationSwitch(isChecked: Boolean, alarm: Alarm) {
+        alarm.vibrationIsEnabled = isChecked
         if (isChecked) {
-            alarm.vibrationIsEnabled = true
             binding?.vibrationSwitch?.trackTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
             binding?.vibrationName?.text = ContextCompat.getString(requireContext(), R.string.state_on)
         } else {
-            alarm.vibrationIsEnabled = false
-            binding?.vibrationSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
+            binding?.vibrationSwitch?.trackTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
             binding?.vibrationName?.text = ContextCompat.getString(requireContext(), R.string.state_off)
         }
     }
 
     private fun changeDelAfterUseSwitch(isChecked: Boolean, alarm: Alarm) {
+        alarm.delAfterUseIsEnabled = isChecked
         if (isChecked) {
-            alarm.delAfterUseIsEnabled = true
-            binding?.delAfterUseSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
+            binding?.delAfterUseSwitch?.trackTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
             binding?.delAfterUseState?.text = ContextCompat.getString(requireContext(), R.string.state_on)
         } else {
-            alarm.delAfterUseIsEnabled = false
-            binding?.delAfterUseSwitch?.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
+            binding?.delAfterUseSwitch?.trackTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
             binding?.delAfterUseState?.text = ContextCompat.getString(requireContext(), R.string.state_off)
         }
     }
