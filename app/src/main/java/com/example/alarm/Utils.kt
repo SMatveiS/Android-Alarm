@@ -107,6 +107,7 @@ object Utils {
             putExtra("HAVE_SOUND", alarm.soundIsEnabled)
             putExtra("HAVE_VIBRATION", alarm.vibrationIsEnabled)
             putExtra("DEL_AFTER_USE", alarm.delAfterUseIsEnabled)
+            putExtra("SOUND_NAME", alarm.soundName)
             setAction("START_ALARM")
         }
         val pendingIntent = PendingIntent.getBroadcast(

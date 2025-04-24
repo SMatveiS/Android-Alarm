@@ -25,6 +25,7 @@ class FullScreenNotification : AppCompatActivity() {
             AlarmMusic.stop()
             AlarmVibration.stop()
             NotificationManagerCompat.from(this).cancel(intent.getIntExtra("ID", 0))
+            finish()
         }
     }
 }

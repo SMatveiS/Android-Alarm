@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -24,7 +25,7 @@ class AlarmReceiver: BroadcastReceiver() {
 
             if (intent.getBooleanExtra("HAVE_SOUND", false)) {
                 AlarmMusic.stop()
-                AlarmMusic.start(context)
+                AlarmMusic.start(context, Uri.parse(intent.getStringExtra("SOUND_NAME")))
             }
             if (intent.getBooleanExtra("HAVE_VIBRATION", false)) {
                 AlarmVibration.stop()

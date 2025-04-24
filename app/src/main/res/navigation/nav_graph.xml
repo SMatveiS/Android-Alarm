@@ -19,8 +19,6 @@
         tools:layout="@layout/build_alarm_fragment" >
         <action android:id="@+id/actionBuildToAlarms"
             app:destination="@id/alarmsFragment" />
-        <action android:id="@+id/actionBuildToSelectSound"
-            app:destination="@id/selectAlarmSoundFragment" />
         <argument android:name="alarm_id"
             android:defaultValue="-1L"
             app:argType="long" />
@@ -34,10 +32,4 @@
         <argument android:name="alarm_id"
             app:argType="long" />
     </fragment>
-
-    <fragment android:id="@+id/selectAlarmSoundFragment"
-        android:name="com.example.alarm.SelectAlarmSoundFragment"
-        tools:layout="@layout/select_alarm_sound_fragment" />
-
-
 </navigation>

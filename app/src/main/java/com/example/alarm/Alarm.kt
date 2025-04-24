@@ -1,5 +1,6 @@
 package com.example.alarm
 
+import android.media.RingtoneManager
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
@@ -11,11 +12,10 @@ data class Alarm(
     var alarmIsEnabled: Boolean = true,
     var name: String = "",
     var time: String = "06:00",
-    //var date: String = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
     var soundIsEnabled: Boolean = true,
-    var soundName: String = "default",
+    var soundName: String = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString(),
     var vibrationIsEnabled: Boolean = true,
-    var vibrationName: String = "default",
+    var vibrationName: String = "Включено",
     var delAfterUseIsEnabled: Boolean = false,
 
     var weekDaysEnabled: String = "",

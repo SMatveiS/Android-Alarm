@@ -11,8 +11,6 @@
         android:id="@+id/hour"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:layout_marginTop="135dp"
-        android:layout_marginStart="80dp"
         android:gravity="center"
         android:textSize="50sp"
         android:textColor="@color/white"
@@ -22,13 +20,16 @@
         android:autofillHints="false"
 
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toStartOf="@id/join"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/alarm_settings"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintVertical_bias="0.5"/>
 
     <TextView
         android:id="@+id/join"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:layout_marginTop="135dp"
         android:gravity="center"
         android:textSize="50sp"
         android:textColor="@color/white"
@@ -38,14 +39,12 @@
         app:layout_constraintStart_toEndOf="@id/hour"
         app:layout_constraintEnd_toStartOf="@id/minute"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"/>
+        app:layout_constraintBottom_toTopOf="@id/alarm_settings" />
 
     <EditText
         android:id="@+id/minute"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:layout_marginTop="135dp"
-        android:layout_marginEnd="80dp"
         android:gravity="center"
         android:textSize="50sp"
         android:textColor="@color/white"
@@ -55,7 +54,9 @@
         android:autofillHints="false"
 
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@id/join"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/alarm_settings" />
 
     <Button
         android:id="@+id/cancel_button"
@@ -73,6 +74,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/save_button"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="1"
         app:layout_constraintWidth_default="percent"
         app:layout_constraintWidth_percent="0.5" />
 
@@ -89,22 +91,24 @@
 
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/alarm_settings"
         app:layout_constraintEnd_toEndOf="parent"
-
         app:layout_constraintStart_toEndOf="@id/cancel_button"
+        app:layout_constraintVertical_bias="1"
         app:layout_constraintWidth_default="percent"
         app:layout_constraintWidth_percent="0.5" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/alarm_settings"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="135dp"
+        android:layout_height="wrap_content"
         android:background="@drawable/rounded_view_for_build_alarm"
 
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/join"
-        app:layout_constraintBottom_toTopOf="@id/cancel_button">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/cancel_button"
+        app:layout_constraintVertical_bias="1">
 
         <TextView
             android:id="@+id/alarm_day_text"
@@ -122,12 +126,13 @@
         <ToggleButton
             android:id="@+id/monday"
             style="@style/week_button"
-            android:layout_marginStart="8dp"
             android:textOn="@string/monday"
             android:textOff="@string/monday"
 
             app:layout_constraintTop_toBottomOf="@id/alarm_day_text"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tuesday"
+            app:layout_constraintHorizontal_chainStyle="spread"/>
 
         <ToggleButton
             android:id="@+id/tuesday"
@@ -136,7 +141,8 @@
             android:textOff="@string/tuesday"
 
             app:layout_constraintTop_toBottomOf="@id/alarm_day_text"
-            app:layout_constraintStart_toEndOf="@id/monday" />
+            app:layout_constraintStart_toEndOf="@id/monday"
+            app:layout_constraintEnd_toStartOf="@id/wednesday"/>
 
         <ToggleButton
             android:id="@+id/wednesday"
@@ -145,7 +151,8 @@
             android:textOff="@string/wednesday"
 
             app:layout_constraintTop_toBottomOf="@id/alarm_day_text"
-            app:layout_constraintStart_toEndOf="@id/tuesday" />
+            app:layout_constraintStart_toEndOf="@id/tuesday"
+            app:layout_constraintEnd_toStartOf="@id/thursday"/>
 
         <ToggleButton
             android:id="@+id/thursday"
@@ -154,7 +161,8 @@
             android:textOff="@string/thursday"
 
             app:layout_constraintTop_toBottomOf="@id/alarm_day_text"
-            app:layout_constraintStart_toEndOf="@id/wednesday" />
+            app:layout_constraintStart_toEndOf="@id/wednesday"
+            app:layout_constraintEnd_toStartOf="@id/friday"/>
 
         <ToggleButton
             android:id="@+id/friday"
@@ -163,7 +171,8 @@
             android:textOff="@string/friday"
 
             app:layout_constraintTop_toBottomOf="@id/alarm_day_text"
-            app:layout_constraintStart_toEndOf="@id/thursday" />
+            app:layout_constraintStart_toEndOf="@id/thursday"
+            app:layout_constraintEnd_toStartOf="@id/saturday"/>
 
         <ToggleButton
             android:id="@+id/saturday"
@@ -172,7 +181,8 @@
             android:textOff="@string/saturday"
 
             app:layout_constraintTop_toBottomOf="@id/alarm_day_text"
-            app:layout_constraintStart_toEndOf="@id/friday" />
+            app:layout_constraintStart_toEndOf="@id/friday"
+            app:layout_constraintEnd_toStartOf="@id/sunday"/>
 
         <ToggleButton
             android:id="@+id/sunday"
@@ -181,7 +191,8 @@
             android:textOff="@string/sunday"
 
             app:layout_constraintTop_toBottomOf="@id/alarm_day_text"
-            app:layout_constraintStart_toEndOf="@id/saturday" />
+            app:layout_constraintStart_toEndOf="@id/saturday"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
         <EditText
             android:id="@+id/alarm_name"

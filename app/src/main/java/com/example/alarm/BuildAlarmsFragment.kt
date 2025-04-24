@@ -2,8 +2,12 @@ package com.example.alarm
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity.RESULT_OK
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
@@ -16,6 +20,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.alarm.databinding.BuildAlarmFragmentBinding
@@ -28,9 +33,12 @@ import java.time.LocalDate
 class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
     private var binding: BuildAlarmFragmentBinding? = null
     private val args: BuildAlarmsFragmentArgs by navArgs()
+    private lateinit var ringtoneManager: RingtonePreferencesManager
+    private var soundUriString: String = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()
 
     private var isNotificationPermissionGranted = false
     private var isReadMediaAudioPermissionGranted = false
+    private var isReadExternalStoragePermissionGranted = false
 
 
     override fun onCreateView(
@@ -45,14 +53,16 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
             CoroutineScope(Dispatchers.IO).launch {
                 val alarm = alarmViewModel.getAlarm(args.alarmId)
 
+                soundUriString = alarm.soundName
+
                 binding!!.alarmName.setText(alarm.name)
                 binding!!.soundSwitch.isChecked = alarm.soundIsEnabled
                 binding!!.vibrationSwitch.isChecked = alarm.vibrationIsEnabled
                 binding!!.delAfterUseSwitch.isChecked = alarm.delAfterUseIsEnabled
 
-                changeSoundSwitch(alarm.soundIsEnabled, alarm)
-                changeVibrationSwitch(alarm.vibrationIsEnabled, alarm)
-                changeDelAfterUseSwitch(alarm.delAfterUseIsEnabled, alarm)
+                changeSoundBlock(alarm.soundIsEnabled, alarm)
+                changeVibrationBlock(alarm.vibrationIsEnabled, alarm)
+                changeDelAfterUseBlock(alarm.delAfterUseIsEnabled, alarm)
 
                 binding!!.monday.isChecked = '1' in alarm.weekDaysEnabled
                 binding!!.tuesday.isChecked = '2' in alarm.weekDaysEnabled
@@ -79,22 +89,25 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
         val alarmViewModel = AlarmViewModel(requireActivity().application)
 
         val newAlarm = Alarm()
-        newAlarm.time = "${binding?.hour?.text}:${binding?.minute?.text}"
-        newAlarm.soundIsEnabled = binding!!.soundSwitch.isChecked
-        newAlarm.vibrationIsEnabled = binding!!.vibrationSwitch.isChecked
-        newAlarm.delAfterUseIsEnabled = binding!!.delAfterUseSwitch.isChecked
-        newAlarm.soundName = binding?.soundName?.text.toString()
-        newAlarm.vibrationName = binding?.vibrationName?.text.toString()
+        
+        binding?.soundSwitch?.let { changeSoundBlock(it.isChecked, newAlarm) }
+        binding?.soundSwitch?.let { changeVibrationBlock(it.isChecked, newAlarm) }
+        binding?.soundSwitch?.let { changeDelAfterUseBlock(it.isChecked, newAlarm) }
 
-        changeWeekDay(binding!!.monday, binding!!.monday.isChecked, newAlarm, DayOfWeek.MONDAY)
-        changeWeekDay(binding!!.tuesday, binding!!.tuesday.isChecked, newAlarm, DayOfWeek.TUESDAY)
-        changeWeekDay(binding!!.wednesday, binding!!.wednesday.isChecked, newAlarm, DayOfWeek.WEDNESDAY)
-        changeWeekDay(binding!!.thursday, binding!!.thursday.isChecked, newAlarm, DayOfWeek.THURSDAY)
-        changeWeekDay(binding!!.friday, binding!!.friday.isChecked, newAlarm, DayOfWeek.FRIDAY)
-        changeWeekDay(binding!!.saturday, binding!!.saturday.isChecked, newAlarm, DayOfWeek.SATURDAY)
-        changeWeekDay(binding!!.sunday, binding!!.sunday.isChecked, newAlarm, DayOfWeek.SUNDAY)
+        // Изменяем UI, если мы работаем с уже существующим будильником
+        if (args.alarmId != (-1).toLong()) {
+            newAlarm.time = "${binding?.hour?.text}:${binding?.minute?.text}"
 
-        newAlarm.time = getAlarmTime()
+            changeWeekDay(binding!!.monday, binding!!.monday.isChecked, newAlarm, DayOfWeek.MONDAY)
+            changeWeekDay(binding!!.tuesday, binding!!.tuesday.isChecked, newAlarm, DayOfWeek.TUESDAY)
+            changeWeekDay(binding!!.wednesday, binding!!.wednesday.isChecked, newAlarm, DayOfWeek.WEDNESDAY)
+            changeWeekDay(binding!!.thursday, binding!!.thursday.isChecked, newAlarm, DayOfWeek.THURSDAY)
+            changeWeekDay(binding!!.friday, binding!!.friday.isChecked, newAlarm, DayOfWeek.FRIDAY)
+            changeWeekDay(binding!!.saturday, binding!!.saturday.isChecked, newAlarm, DayOfWeek.SATURDAY)
+            changeWeekDay(binding!!.sunday, binding!!.sunday.isChecked, newAlarm, DayOfWeek.SUNDAY)
+
+            newAlarm.time = getAlarmTime()
+        }
 
         
         changeAlarmDayText(newAlarm)
@@ -175,19 +188,29 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
 
 
         binding?.soundSwitch?.setOnCheckedChangeListener { _, isChecked ->
-            changeSoundSwitch(isChecked, newAlarm)
+            changeSoundBlock(isChecked, newAlarm)
         }
-
         binding?.vibrationSwitch?.setOnCheckedChangeListener { _, isChecked ->
-            changeVibrationSwitch(isChecked, newAlarm)
+            changeVibrationBlock(isChecked, newAlarm)
         }
-
         binding?.delAfterUseSwitch?.setOnCheckedChangeListener { _, isChecked ->
-            changeDelAfterUseSwitch(isChecked, newAlarm)
+            changeDelAfterUseBlock(isChecked, newAlarm)
         }
 
+        // Вызываем выбор мелодии будильника
         binding?.alarmSound?.setOnClickListener {
-            findNavController().navigate(BuildAlarmsFragmentDirections.actionBuildToSelectSound())
+            ringtoneManager = RingtonePreferencesManager(requireContext())
+            openRingtonePicker()
+
+            lifecycleScope.launch {
+                ringtoneManager.ringtoneUri.collect { uriString ->
+                    uriString?.let {
+                        newAlarm.soundName = uriString
+                        soundUriString = uriString
+                    }
+                    changeSoundBlock(newAlarm.soundIsEnabled, newAlarm)
+                }
+            }
         }
 
         binding?.cancelButton?.setOnClickListener {
@@ -195,7 +218,7 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
         }
 
         binding?.saveButton?.setOnClickListener {
-            checkAndRequestPermissions(newAlarm.vibrationIsEnabled)
+            checkAndRequestPermissions()
 
             newAlarm.name = binding?.alarmName?.text.toString().trim()
             Utils.parseWeekSetToString(newAlarm)
@@ -276,26 +299,24 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
         changeAlarmDayText(alarm)
     }
 
-    private fun changeSoundSwitch(isChecked: Boolean, alarm: Alarm) {
-        alarm.soundIsEnabled = isChecked
-        if (isChecked) {
+    private fun changeSoundBlock(newState: Boolean, alarm: Alarm) {
+        alarm.soundIsEnabled = newState
+        if (newState) {
             binding?.soundSwitch?.trackTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
-            binding?.soundName?.text = "default"
-
-
+            // Получаем название мелодии из URI
+            binding?.soundName?.text = RingtoneManager.getRingtone(
+                requireContext(), Uri.parse(soundUriString)).getTitle(requireContext())
         } else {
             binding?.soundSwitch?.trackTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.light_grey))
             binding?.soundName?.text = ContextCompat.getString(requireContext(), R.string.state_off)
-
-
         }
     }
 
-    private fun changeVibrationSwitch(isChecked: Boolean, alarm: Alarm) {
-        alarm.vibrationIsEnabled = isChecked
-        if (isChecked) {
+    private fun changeVibrationBlock(newState: Boolean, alarm: Alarm) {
+        alarm.vibrationIsEnabled = newState
+        if (newState) {
             binding?.vibrationSwitch?.trackTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
             binding?.vibrationName?.text = ContextCompat.getString(requireContext(), R.string.state_on)
@@ -306,9 +327,9 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
         }
     }
 
-    private fun changeDelAfterUseSwitch(isChecked: Boolean, alarm: Alarm) {
-        alarm.delAfterUseIsEnabled = isChecked
-        if (isChecked) {
+    private fun changeDelAfterUseBlock(newState: Boolean, alarm: Alarm) {
+        alarm.delAfterUseIsEnabled = newState
+        if (newState) {
             binding?.delAfterUseSwitch?.trackTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.purple))
             binding?.delAfterUseState?.text = ContextCompat.getString(requireContext(), R.string.state_on)
@@ -323,15 +344,45 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
         return binding?.hour?.text.toString() + ":" + binding?.minute?.text
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private val permissionsLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()) {permissions ->
-        isNotificationPermissionGranted = permissions[Manifest.permission.POST_NOTIFICATIONS]?:isNotificationPermissionGranted
-        isReadMediaAudioPermissionGranted = permissions[Manifest.permission.READ_MEDIA_AUDIO]?:isReadMediaAudioPermissionGranted
+
+    // Выбор мелодии для будильника
+    private val ringtonePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val uri: Uri? = result.data?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            // Сохраняем URI
+            uri?.let {
+                lifecycleScope.launch {
+                    ringtoneManager.saveRingtoneUri(it.toString())
+                }
+            }
+        }
     }
 
-    private fun checkAndRequestPermissions(selectVibration: Boolean) {
-        // Если API 33 или больше, то явные разрешения не требуются
+    private fun openRingtonePicker() {
+        val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+            putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
+            putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Выберите мелодию будильника")
+            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+        }
+        ringtonePickerLauncher.launch(intent)
+    }
+
+    // Запрос разрешений
+    private val permissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()) {permissions ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            isNotificationPermissionGranted = permissions[Manifest.permission.POST_NOTIFICATIONS] ?: isNotificationPermissionGranted
+            isReadMediaAudioPermissionGranted = permissions[Manifest.permission.READ_MEDIA_AUDIO] ?: isReadMediaAudioPermissionGranted
+        }
+        isReadExternalStoragePermissionGranted = permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: isReadExternalStoragePermissionGranted
+    }
+
+    private fun checkAndRequestPermissions() {
+        val permissionRequest: MutableList<String> = ArrayList()
+        // Если API 33 или больше, то явное разрешение нужно только для READ_EXTERNAL_STORAGE
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // Сначала проверим и попросим разрешение на уведомления
             isNotificationPermissionGranted = ContextCompat.checkSelfPermission(
@@ -339,14 +390,17 @@ class BuildAlarmsFragment: Fragment(R.layout.build_alarm_fragment) {
             isReadMediaAudioPermissionGranted = ContextCompat.checkSelfPermission(
                 requireContext(), Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
 
-            val permissionRequest: MutableList<String> = ArrayList()
             if (!isNotificationPermissionGranted)
                 permissionRequest.add(Manifest.permission.POST_NOTIFICATIONS)
-            if (!isReadMediaAudioPermissionGranted && selectVibration)
+            if (!isReadMediaAudioPermissionGranted)
                 permissionRequest.add(Manifest.permission.READ_MEDIA_AUDIO)
 
             if (permissionRequest.isNotEmpty())
                 permissionsLauncher.launch(permissionRequest.toTypedArray())
+        }
+        else if (!isReadExternalStoragePermissionGranted) {
+            permissionRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            permissionsLauncher.launch(permissionRequest.toTypedArray())
         }
     }
 }
